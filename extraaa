@@ -1,0 +1,236 @@
+// app/actions/auth.ts
+"use server"
+
+import { supabase } from "@/lib/supabase"
+import { redirect } from "next/navigation"
+
+export async function login(formData: FormData) {
+  const email = String(formData.get("email") || "").trim().toLowerCase()
+  const password = String(formData.get("password") || "")
+
+  try {
+    // Special handling for demo admin
+    if (email === "admin@example.com" && password === "adminlms10") {
+      return { success: true, role: "admin" }
+    }
+
+    // Try to authenticate with Supabase
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (authError) {
+      return { success: false, error: "Invalid email or password" }
+    }
+
+    // Get user role from our users table
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('auth_id', authData.user.id)
+      .single()
+
+    if (userError || !userData) {
+      return { success: false, error: "User not found in system" }
+    }
+
+    return { success: true, role: userData.role }
+  } catch (error) {
+    return { success: false, error: "An unexpected error occurred" }
+  }
+}
+
+export async function signup(formData: FormData) {
+  const email = String(formData.get("email") || "").trim().toLowerCase()
+  const password = String(formData.get("password") || "")
+  const name = String(formData.get("name") || "").trim()
+
+  try {
+    // Create auth user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+
+    if (authError) {
+      return { success: false, error: authError.message }
+    }
+
+    if (!authData.user) {
+      return { success: false, error: "Failed to create user" }
+    }
+
+    // Create user record in our users table
+    const { error: userError } = await supabase
+      .from('users')
+      .insert({
+        auth_id: authData.user.id,
+        name,
+        role: 'student'
+      })
+
+    if (userError) {
+      return { success: false, error: "Failed to create user profile" }
+    }
+
+    return { success: true, role: "student" }
+  } catch (error) {
+    return { success: false, error: "An unexpected error occurred" }
+  }
+}
+
+export async function logout() {
+  try {
+    await supabase.auth.signOut()
+    redirect("/")
+  } catch (error) {
+    console.error("Logout error:", error)
+    redirect("/")
+  }
+}
+
+export async function getCurrentUser() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (!session) {
+      return null
+    }
+
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('auth_id', session.user.id)
+      .single()
+
+    if (error || !userData) {
+      return null
+    }
+
+    return userData
+  } catch (error) {
+    console.error("Error getting current user:", error)
+    return null
+  }
+}
+
+// middleware.ts (in root directory)
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next()
+  const supabase = createMiddlewareClient({ req, res })
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  // Protected routes
+  const isAdminRoute = req.nextUrl.pathname.startsWith('/admin')
+  const isDashboardRoute = req.nextUrl.pathname.startsWith('/dashboard')
+  const isProtectedRoute = isAdminRoute || isDashboardRoute
+
+  // If accessing protected route without session, redirect to login
+  if (isProtectedRoute && !session) {
+    return NextResponse.redirect(new URL('/login', req.url))
+  }
+
+  // If logged in and accessing auth pages, redirect to appropriate dashboard
+  if (session && (req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/signup')) {
+    // Get user role to determine redirect
+    const { data: userData } = await supabase
+      .from('users')
+      .select('role')
+      .eq('auth_id', session.user.id)
+      .single()
+
+    if (userData?.role === 'admin') {
+      return NextResponse.redirect(new URL('/admin', req.url))
+    } else {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+  }
+
+  // Role-based access control
+  if (session && isProtectedRoute) {
+    const { data: userData } = await supabase
+      .from('users')
+      .select('role')
+      .eq('auth_id', session.user.id)
+      .single()
+
+    // Admin trying to access student dashboard
+    if (userData?.role === 'admin' && isDashboardRoute) {
+      return NextResponse.redirect(new URL('/admin', req.url))
+    }
+
+    // Student trying to access admin dashboard  
+    if (userData?.role === 'student' && isAdminRoute) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+  }
+
+  return res
+}
+
+export const config = {
+  matcher: ['/admin/:path*', '/dashboard/:path*', '/login', '/signup']
+}
+
+// hooks/useAuth.ts
+"use client"
+
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
+import type { User } from '@/types/database'
+
+export function useAuth() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Get initial session
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (session) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('auth_id', session.user.id)
+          .single()
+        
+        setUser(userData || null)
+      }
+      
+      setLoading(false)
+    }
+
+    getInitialSession()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('*')
+            .eq('auth_id', session.user.id)
+            .single()
+          
+          setUser(userData || null)
+        } else {
+          setUser(null)
+        }
+        setLoading(false)
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  return { user, loading }
+}
