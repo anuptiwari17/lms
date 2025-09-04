@@ -93,13 +93,13 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
         <div className="text-center space-y-6">
           {/* Enhanced Loading Animation */}
-          <div className="relative">
+          <div className="relative w-16 h-16 mx-auto">
             {/* Outer spinning ring */}
             <div className="w-16 h-16 border-4 border-gray-200 rounded-full animate-spin"></div>
             {/* Inner spinning ring */}
             <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-[var(--brand-primary)] border-r-[var(--brand-primary)] rounded-full animate-spin"></div>
             {/* Center logo */}
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute top-0 left-0 w-16 h-16 flex items-center justify-center">
               <GraduationCap className="h-6 w-6 text-[var(--brand-primary)]" />
             </div>
           </div>
@@ -119,21 +119,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Progress indicators */}
-          <div className="space-y-3 max-w-xs">
-            <div className="flex items-center justify-between text-sm text-[var(--text-secondary)]">
-              <span>Verifying access...</span>
-              <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-bounce"></div>
-            </div>
-            <div className="flex items-center justify-between text-sm text-[var(--text-secondary)]">
-              <span>Loading analytics...</span>
-              <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-            </div>
-            <div className="flex items-center justify-between text-sm text-[var(--text-secondary)]">
-              <span>Fetching courses...</span>
-              <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-            </div>
-          </div>
+
         </div>
       </div>
     )
@@ -343,8 +329,8 @@ export default function AdminDashboard() {
                   <Card className="bg-white border-[var(--ui-card-border)] shadow-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer group h-full">
                     <CardHeader className="pb-4">
                       <div className="flex justify-between items-start mb-2">
-                        <div className="p-2 bg-[var(--ui-input-bg)] rounded-lg group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
-                          <BookOpen className="h-5 w-5" />
+                        <div className="p-2 bg-[var(--ui-input-bg)] rounded-lg group-hover:bg-[var(--brand-primary)] transition-colors">
+                          <BookOpen className="h-5 w-5 text-[var(--brand-primary)] transition-colors" />
                         </div>
                         <ArrowRight className="h-4 w-4 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
                       </div>
