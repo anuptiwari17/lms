@@ -8,9 +8,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-minimum-
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { courseId: string } }
+  context: { params: Promise<{ courseId: string }> }
 ) {
   try {
+    // Await params for Next.js 15+ compatibility
+    const params = await context.params
+    
     // Check authentication
     const token = request.cookies.get('lms-auth-token')?.value
     if (!token) {

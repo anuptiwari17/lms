@@ -21,20 +21,20 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // Database helper functions
 export const db = {
   // Generic query function
-  async query(query: string, params: unknown[] = []) {
-    try {
-      const { data, error } = await supabase.rpc('execute_sql', {
-        query,
-        params
-      })
+  // async query(query: string, params: unknown[] = []) {
+  //   try {
+  //     const { data, error } = await supabase.rpc('execute_sql', {
+  //       query,
+  //       params
+  //     })
       
-      if (error) throw error
-      return { data, error: null }
-    } catch (error) {
-      console.error('Database query error:', error)
-      return { data: null, error }
-    }
-  },
+  //     if (error) throw error
+  //     return { data, error: null }
+  //   } catch (error) {
+  //     console.error('Database query error:', error)
+  //     return { data: null, error }
+  //   }
+  // },
 
   // Select with filters
   async select(table: string, columns = '*', filters: Record<string, unknown> = {}) {

@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -42,12 +42,13 @@ interface StudentInCourse {
   updated_at: string
 }
 
-export default function CourseDetailPage({ params }: { params: { id: string } }) {
+export default function CourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [course, setCourse] = useState<CourseWithModules | null>(null)
   const [students, setStudents] = useState<StudentInCourse[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [activeTab, setActiveTab] = useState("overview")
+  const [courseId, setCourseId] = useState<string>("")
   
   // Module form state
   const [showModuleForm, setShowModuleForm] = useState(false)
@@ -61,17 +62,28 @@ export default function CourseDetailPage({ params }: { params: { id: string } })
   
   const router = useRouter()
 
+  // Extract params on component mount
   useEffect(() => {
-    loadCourseData()
-  }, [params.id])
+    const extractParams = async () => {
+      const resolvedParams = await params;
+      setCourseId(resolvedParams.id);
+    };
+    extractParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (courseId) {
+      loadCourseData()
+    }
+  }, [courseId])
 
   const loadCourseData = async () => {
     try {
       setLoading(true)
       
       const [courseRes, studentsRes] = await Promise.all([
-        fetch(`/api/courses/${params.id}`),
-        fetch(`/api/courses/${params.id}/students`)
+        fetch(`/api/courses/${courseId}`),
+        fetch(`/api/courses/${courseId}/students`)
       ])
 
       const courseData = await courseRes.json()
@@ -103,7 +115,7 @@ export default function CourseDetailPage({ params }: { params: { id: string } })
         throw new Error("Title and video URL are required")
       }
 
-      const response = await fetch(`/api/courses/${params.id}/modules`, {
+      const response = await fetch(`/api/courses/${courseId}/modules`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -150,6 +162,18 @@ export default function CourseDetailPage({ params }: { params: { id: string } })
   const getYouTubeEmbedUrl = (url: string) => {
     const videoId = utils.extractYouTubeVideoId(url)
     return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+  }
+
+  // Don't render until we have the courseId
+  if (!courseId) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[var(--text-secondary)]">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   if (loading) {
@@ -484,8 +508,9 @@ export default function CourseDetailPage({ params }: { params: { id: string } })
                                       src={embedUrl}
                                       title={module.title}
                                       className="w-full h-full"
-                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                       allowFullScreen
+                                      referrerPolicy="strict-origin-when-cross-origin"
                                     />
                                   </div>
                                 </div>
@@ -521,7 +546,7 @@ export default function CourseDetailPage({ params }: { params: { id: string } })
                 <h3 className="text-lg font-semibold text-[var(--fg-primary)]">Enrolled Students</h3>
                 <p className="text-[var(--text-secondary)]">Track student progress and manage enrollments</p>
               </div>
-              <Link href={`/admin/courses/${params.id}/enroll`}>
+              <Link href={`/admin/courses/${courseId}/enroll`}>
                 <Button className="btn-primary">
                   <Plus className="h-4 w-4 mr-2" />
                   Enroll Students
@@ -577,7 +602,7 @@ export default function CourseDetailPage({ params }: { params: { id: string } })
                   <p className="text-[var(--text-secondary)] mb-6">
                     Start by enrolling students in this course to track their progress.
                   </p>
-                  <Link href={`/admin/courses/${params.id}/enroll`}>
+                  <Link href={`/admin/courses/${courseId}/enroll`}>
                     <Button className="btn-primary">
                       <Plus className="h-4 w-4 mr-2" />
                       Enroll Students

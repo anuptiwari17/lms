@@ -185,14 +185,6 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        {/* Demo Access Card */}
-        <div className="mt-6 p-5 bg-white rounded-xl shadow-lg border border-gray-100">
-          <h4 className="text-sm font-bold text-[#2d2d2d] mb-3">Demo Access:</h4>
-          <div className="text-sm text-gray-700 space-y-2 font-medium">
-            <div><strong className="text-[#2d5a3b]">Admin:</strong> admin@learnhub.com / admin123</div>
-            <div><strong className="text-[#2d5a3b]">Student:</strong> Create a new account or use student@test.com / password123</div>
-          </div>
-        </div>
       </div>
     </div>
   )

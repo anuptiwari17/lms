@@ -54,16 +54,16 @@ export default function StudentDashboard() {
     try {
       setLoading(true)
       
-      // Get current user
-      const userRes = await fetch('/api/auth/me', { credentials: 'include' })
-      const userData = await userRes.json()
+      // Check authentication first
+      const authRes = await fetch('/api/auth/check', { credentials: 'include' })
+      const authData = await authRes.json()
       
-      if (!userData.success || userData.data?.role !== 'student') {
+      if (!authData.success || authData.data?.role !== 'student') {
         router.push('/login')
         return
       }
       
-      setUser(userData.data)
+      setUser(authData.data)
 
       // Get student stats
       const statsRes = await fetch('/api/student/stats', { credentials: 'include' })

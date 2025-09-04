@@ -2,13 +2,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useParams} from "next/navigation"
+// import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
+// import { Badge } from "@/components/ui/badge"
 import { 
   ArrowLeft, 
   Users, 
@@ -18,14 +19,18 @@ import {
   Mail,
   Calendar
 } from "lucide-react"
-import type { User, Course, ApiResponse } from "@/types/database"
+import type { User, Course } from "@/types/database"
 
 interface StudentWithEnrollment extends User {
   enrolled: boolean
   enrollment_date?: string
 }
 
-export default function StudentEnrollmentPage({ params }: { params: { id: string } }) {
+export default function StudentEnrollmentPage() {
+  // Use useParams instead of params prop for Next.js 15 compatibility
+  const params = useParams()
+  const courseId = params.id as string
+
   const [course, setCourse] = useState<Course | null>(null)
   const [students, setStudents] = useState<StudentWithEnrollment[]>([])
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
@@ -34,18 +39,20 @@ export default function StudentEnrollmentPage({ params }: { params: { id: string
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
-  const router = useRouter()
+  // const router = useRouter()
 
   useEffect(() => {
-    loadData()
-  }, [params.id])
+    if (courseId) {
+      loadData()
+    }
+  }, [courseId])
 
   const loadData = async () => {
     try {
       setLoading(true)
       
       // Get course details
-      const courseRes = await fetch(`/api/courses/${params.id}`, {
+      const courseRes = await fetch(`/api/courses/${courseId}`, {
         credentials: 'include'
       })
       const courseData = await courseRes.json()
@@ -57,7 +64,7 @@ export default function StudentEnrollmentPage({ params }: { params: { id: string
       setCourse(courseData.data)
 
       // Get all students and their enrollment status for this course
-      const studentsRes = await fetch(`/api/admin/students/enrollment-status/${params.id}`, {
+      const studentsRes = await fetch(`/api/admin/students/enrollment-status/${courseId}`, {
         credentials: 'include'
       })
       
@@ -68,9 +75,9 @@ export default function StudentEnrollmentPage({ params }: { params: { id: string
         }
       }
 
-    } catch (error) {
-      console.error('Error loading data:', error)
-      setError(error instanceof Error ? error.message : 'Failed to load data')
+    } catch (err) {
+      console.error("Error loading data:", err)
+      setError(err instanceof Error ? err.message : "Failed to load data")
     } finally {
       setLoading(false)
     }
@@ -111,7 +118,7 @@ export default function StudentEnrollmentPage({ params }: { params: { id: string
           credentials: 'include',
           body: JSON.stringify({
             studentId,
-            courseId: params.id
+            courseId: courseId
           })
         })
       )
@@ -140,9 +147,9 @@ export default function StudentEnrollmentPage({ params }: { params: { id: string
         setError(`Failed to enroll ${errorCount} student(s)`)
       }
 
-    } catch (error) {
-      console.error('Enrollment error:', error)
-      setError('Failed to enroll students')
+    } catch (err) {
+      console.error("Enrollment error: ", err)
+      setError("Failed to enroll students")
     } finally {
       setProcessing(false)
     }
@@ -158,7 +165,7 @@ export default function StudentEnrollmentPage({ params }: { params: { id: string
         credentials: 'include',
         body: JSON.stringify({
           studentId,
-          courseId: params.id
+          courseId: courseId
         })
       })
 
@@ -171,9 +178,8 @@ export default function StudentEnrollmentPage({ params }: { params: { id: string
         setError(result.error || 'Failed to unenroll student')
       }
 
-    } catch (error) {
-      console.error('Unenroll error:', error)
-      setError('Failed to unenroll student')
+    } catch (err) {
+      console.error("Unenroll error:", err)
     }
   }
 
@@ -216,7 +222,7 @@ export default function StudentEnrollmentPage({ params }: { params: { id: string
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link href={`/admin/courses/${params.id}`}>
+              <Link href={`/admin/courses/${courseId}`}>
                 <Button variant="ghost" size="sm" className="text-[var(--text-secondary)] hover:text-[var(--brand-primary)]">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Course

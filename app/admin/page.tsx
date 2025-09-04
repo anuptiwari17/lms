@@ -17,12 +17,10 @@ import {
   Users, 
   BarChart3, 
   Search,
-  Filter,
   TrendingUp,
   Award,
   Clock,
-  ArrowRight,
-  Settings
+  ArrowRight
 } from "lucide-react"
 import type { AuthUser, DashboardStats, CourseWithStats } from "@/types/database"
 
@@ -93,9 +91,49 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[var(--text-secondary)]">Loading dashboard...</p>
+        <div className="text-center space-y-6">
+          {/* Enhanced Loading Animation */}
+          <div className="relative">
+            {/* Outer spinning ring */}
+            <div className="w-16 h-16 border-4 border-gray-200 rounded-full animate-spin"></div>
+            {/* Inner spinning ring */}
+            <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-[var(--brand-primary)] border-r-[var(--brand-primary)] rounded-full animate-spin"></div>
+            {/* Center logo */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <GraduationCap className="h-6 w-6 text-[var(--brand-primary)]" />
+            </div>
+          </div>
+          
+          {/* Loading text with animation */}
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-[var(--fg-primary)]">
+              Loading Dashboard
+            </h3>
+            <div className="flex items-center justify-center space-x-1">
+              <span className="text-[var(--text-secondary)]">Please wait</span>
+              <div className="flex space-x-1">
+                <div className="w-1 h-1 bg-[var(--brand-primary)] rounded-full animate-pulse"></div>
+                <div className="w-1 h-1 bg-[var(--brand-primary)] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-1 h-1 bg-[var(--brand-primary)] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress indicators */}
+          <div className="space-y-3 max-w-xs">
+            <div className="flex items-center justify-between text-sm text-[var(--text-secondary)]">
+              <span>Verifying access...</span>
+              <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-bounce"></div>
+            </div>
+            <div className="flex items-center justify-between text-sm text-[var(--text-secondary)]">
+              <span>Loading analytics...</span>
+              <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+            </div>
+            <div className="flex items-center justify-between text-sm text-[var(--text-secondary)]">
+              <span>Fetching courses...</span>
+              <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -104,11 +142,19 @@ export default function AdminDashboard() {
   if (error) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={loadDashboardData} className="btn-primary">
-            Try Again
-          </Button>
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto">
+            <div className="w-6 h-6 border-2 border-red-500 rounded-full flex items-center justify-center">
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-[var(--fg-primary)] mb-2">Something went wrong</h3>
+            <p className="text-red-600 mb-6">{error}</p>
+            <Button onClick={loadDashboardData} className="btn-primary">
+              Try Again
+            </Button>
+          </div>
         </div>
       </div>
     )

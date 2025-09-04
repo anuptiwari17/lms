@@ -6,24 +6,25 @@ import type { ApiResponse } from '@/types/database'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+    
     const user = await auth.getCurrentUser()
     if (!user || user.role !== 'admin') {
-      return NextResponse.json<ApiResponse>({ 
-        success: false, 
-        error: 'Unauthorized' 
+      return NextResponse.json<ApiResponse>({
+        success: false,
+        error: 'Unauthorized'
       }, { status: 401 })
     }
 
-    const students = await getStudentsInCourse(params.id)
-    
+    const students = await getStudentsInCourse(id)
+
     return NextResponse.json<ApiResponse>({
       success: true,
       data: students
     })
-
   } catch (error) {
     console.error('Get course students API error:', error)
     return NextResponse.json<ApiResponse>({

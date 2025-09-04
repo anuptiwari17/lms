@@ -8,8 +8,8 @@ import type {
   Enrollment, 
   ModuleProgress,
   CourseWithStats,
-  StudentWithProgress,
-  CourseWithRelations,
+  // StudentWithProgress,
+  // CourseWithRelations,
   DashboardStats,
   StudentDashboardStats
 } from '../types/database'
