@@ -1,3 +1,4 @@
+//app/api/progress/route.ts --
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { progressQueries } from '@/lib/database'

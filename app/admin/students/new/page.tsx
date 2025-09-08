@@ -3,17 +3,19 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, UserPlus, Save, X, Copy, Eye, EyeOff, Mail } from "lucide-react"
+import { ArrowLeft, UserPlus, Save, X, Copy, Eye, EyeOff, Mail, Phone, User as UserIcon } from "lucide-react"
 import type { ApiResponse, User } from "@/types/database"
 
-export default function CreateStudentPage() {
+export default function ModernCreateStudentPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "", // NEW: Add phone field
     password: ""
   })
   const [isLoading, setIsLoading] = useState(false)
@@ -47,9 +49,20 @@ export default function CreateStudentPage() {
         return
       }
 
+      // Phone validation (if provided)
+      if (formData.phone.trim()) {
+        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
+        const cleanPhone = formData.phone.replace(/[\s\-\(\)]/g, '')
+        if (!phoneRegex.test(cleanPhone)) {
+          setError("Please enter a valid phone number")
+          return
+        }
+      }
+
       const requestBody = {
         name: formData.name.trim(),
         email: formData.email.trim(),
+        phone: formData.phone.trim() || null, // NEW: Include phone
         ...(generatePassword ? {} : { password: formData.password })
       }
 
@@ -80,7 +93,8 @@ export default function CreateStudentPage() {
   }
 
   const handleCreateAnother = () => {
-    setFormData({ name: "", email: "", password: "" })
+    const currentPassword = formData.password // Store current password state
+    setFormData({ name: "", email: "", phone: "", password: currentPassword }) // Reset but keep password if it was manual
     setSuccess(null)
     setError("")
   }
@@ -90,88 +104,126 @@ export default function CreateStudentPage() {
 
   if (success) {
     const studentEmail = success.user.email
+    const studentPhone = success.user.phone
     const tempPassword = success.tempPassword
 
-    // Email subject & body
-    const subject = `Registration on LearnHub`
+    // Email subject & body with phone info
+    const subject = `Registration on Bilvens`
     const body = `Hello ${success.user.name},
 
-You have been successfully registered on LearnHub.
+You have been successfully registered on Bilvens.
 
 Here are your login credentials:
 
 Email: ${studentEmail}
 Password: ${tempPassword}
-
+${studentPhone ? `Phone: ${studentPhone}\n` : ''}
 Please login and start exploring the courses.
 
 Best regards,
-LearnHub Team`
+Bilvens Team`
 
     const mailtoLink = `mailto:${studentEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)]">
-        <header className="bg-white border-b border-[var(--ui-card-border)] shadow-sm">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-            <Link href="/admin">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
-            <h1 className="text-xl font-bold">Student Created Successfully</h1>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex justify-between items-center">
+              <Link href="/admin" className="flex items-center space-x-3">
+                <Image
+                  src="/images/bilvens-logo+name.webp"
+                  alt="Bilvens Logo"
+                  width={160}
+                  height={45}
+                  className="object-contain"
+                />
+                <div className="text-xs text-gray-600 font-medium ml-2">
+                  Admin Dashboard
+                </div>
+              </Link>
+
+              <Link href="/admin">
+                <Button variant="outline" className="text-gray-600 border-gray-300 hover:bg-gray-50">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+            </div>
           </div>
         </header>
 
         <main className="max-w-4xl mx-auto px-6 py-8">
-          <Card className="shadow-lg">
-            <CardHeader className="text-center pb-6">
+          {/* Back Link */}
+          <Link
+            href="/admin"
+            className="inline-flex items-center text-gray-600 mb-6 text-sm font-medium hover:text-[#4A73D1] transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Link>
+
+          <Card className="bg-white border-gray-200 shadow-lg">
+            <CardHeader className="text-center pb-6 bg-gradient-to-r from-green-50 to-white border-b border-gray-100">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <UserPlus className="h-8 w-8 text-green-600" />
               </div>
-              <CardTitle className="text-2xl font-bold">Student Account Created</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-2xl font-bold text-gray-900">Student Account Created</CardTitle>
+              <CardDescription className="text-gray-600">
                 Share these login credentials with the student.
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Name</Label>
-                <p className="font-medium">{success.user.name}</p>
+            <CardContent className="p-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-gray-900">Name</Label>
+                  <p className="font-medium text-gray-800 bg-gray-50 p-3 rounded-lg">{success.user.name}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-gray-900">Email</Label>
+                  <p className="font-medium text-gray-800 bg-gray-50 p-3 rounded-lg">{success.user.email}</p>
+                </div>
               </div>
-              <div>
-                <Label>Email</Label>
-                <p className="font-medium">{success.user.email}</p>
-              </div>
+
+              {/* NEW: Display phone if available */}
+              {success.user.phone && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-gray-900">Phone Number</Label>
+                  <p className="font-medium text-gray-800 bg-gray-50 p-3 rounded-lg">{success.user.phone}</p>
+                </div>
+              )}
+
               {success.tempPassword && (
-                <div>
-                  <Label>Temporary Password</Label>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-mono">{success.tempPassword}</p>
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-gray-900">Temporary Password</Label>
+                  <div className="flex items-center gap-3 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <p className="font-mono font-medium text-gray-900 flex-1">{success.tempPassword}</p>
                     <Button
-                      size="icon"
+                      size="sm"
                       variant="outline"
                       onClick={() => copyToClipboard(success.tempPassword!)}
+                      className="border-blue-300 text-[#4A73D1] hover:bg-blue-100"
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               )}
-              <div className="flex flex-wrap gap-2 pt-4">
-                <Button onClick={handleCreateAnother}>
+
+              <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-100">
+                <Button onClick={handleCreateAnother} className="bg-[#4A73D1] text-white">
                   <UserPlus className="mr-2 h-4 w-4" />
-                  Create Another
+                  Create Another Student
                 </Button>
-                <Button variant="outline" onClick={() => router.push("/admin")}>
+                <Button variant="outline" onClick={() => router.push("/admin")} className="border-gray-300">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Dashboard
                 </Button>
                 {success.tempPassword && (
                   <a href={mailtoLink}>
-                    <Button variant="secondary">
+                    <Button className="bg-[#DB1B28] text-white">
                       <Mail className="mr-2 h-4 w-4" />
                       Send Email
                     </Button>
@@ -185,66 +237,148 @@ LearnHub Team`
     )
   }
 
-
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
-      <header className="bg-white border-b border-[var(--ui-card-border)] shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-          <Link href="/admin">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
-          <h1 className="text-xl font-bold">Create New Student</h1>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <Link href="/admin" className="flex items-center space-x-3">
+              <Image
+                src="/images/bilvens-logo+name.webp"
+                alt="Bilvens Logo"
+                width={160}
+                height={45}
+                className="object-contain"
+              />
+              <div className="text-xs text-gray-600 font-medium ml-2">
+                Admin Dashboard
+              </div>
+            </Link>
+
+            <Link href="/admin">
+              <Button variant="outline" className="text-gray-600 border-gray-300 hover:bg-gray-50">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Create Student Account</CardTitle>
-            <CardDescription>Fill in the details to create a new student.</CardDescription>
+      <main className="max-w-4xl mx-auto px-6 py-8">
+        {/* Back Link */}
+        <Link
+          href="/admin"
+          className="inline-flex items-center text-gray-600 mb-6 text-sm font-medium hover:text-[#4A73D1] transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </Link>
+
+        {/* Page Header */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="p-3 bg-blue-50 rounded-xl">
+              <UserPlus className="h-6 w-6 text-[#4A73D1]" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Create New Student</h1>
+              <p className="text-gray-600">Add a new student to your platform</p>
+            </div>
+          </div>
+        </div>
+
+        <Card className="bg-white border-gray-200 shadow-lg">
+          <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+            <div className="flex items-center space-x-3">
+              <UserIcon className="h-5 w-5 text-[#4A73D1]" />
+              <CardTitle className="text-xl font-bold text-gray-900">Student Details</CardTitle>
+            </div>
+            <CardDescription className="text-gray-600 mt-2">
+              Fill in the student information. They will receive login credentials after creation.
+            </CardDescription>
           </CardHeader>
 
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={e => handleInputChange("name", e.target.value)}
-                  required
-                />
+          <CardContent className="p-8">
+            <div className="space-y-6">
+              {/* Name Field */}
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-semibold text-gray-900">
+                  Full Name <span className="text-[#DB1B28]">*</span>
+                </Label>
+                <div className="relative">
+                  <UserIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={e => handleInputChange("name", e.target.value)}
+                    placeholder="Enter student's full name"
+                    required
+                    className="pl-12 h-12 border-gray-300 focus:border-[#4A73D1] focus:ring-2 focus:ring-[#4A73D1]/10 rounded-lg font-medium"
+                  />
+                </div>
               </div>
 
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={e => handleInputChange("email", e.target.value)}
-                  required
-                />
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-semibold text-gray-900">
+                  Email Address <span className="text-[#DB1B28]">*</span>
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={e => handleInputChange("email", e.target.value)}
+                    placeholder="Enter student's email address"
+                    required
+                    className="pl-12 h-12 border-gray-300 focus:border-[#4A73D1] focus:ring-2 focus:ring-[#4A73D1]/10 rounded-lg font-medium"
+                  />
+                </div>
               </div>
 
+              {/* NEW: Phone Number Field */}
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-sm font-semibold text-gray-900">
+                  Phone Number <span className="text-gray-500 font-normal">(Optional)</span>
+                </Label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={e => handleInputChange("phone", e.target.value)}
+                    placeholder="Enter phone number"
+                    className="pl-12 h-12 border-gray-300 focus:border-[#4A73D1] focus:ring-2 focus:ring-[#4A73D1]/10 rounded-lg font-medium"
+                  />
+                </div>
+                <p className="text-xs text-gray-500">
+                  For important notifications and course updates
+                </p>
+              </div>
+
+              {/* Custom Password Field */}
               {!generatePassword && (
-                <div>
-                  <Label htmlFor="password">Password</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-semibold text-gray-900">Custom Password</Label>
                   <div className="flex items-center space-x-2">
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       value={formData.password}
                       onChange={e => handleInputChange("password", e.target.value)}
+                      placeholder="Enter custom password"
+                      className="h-12 border-gray-300 focus:border-[#4A73D1] focus:ring-2 focus:ring-[#4A73D1]/10 rounded-lg font-medium"
                     />
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
                       onClick={() => setShowPassword(p => !p)}
+                      className="h-12 w-12 border-gray-300"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
@@ -252,17 +386,43 @@ LearnHub Team`
                 </div>
               )}
 
-              {error && <p className="text-red-600 text-sm">{error}</p>}
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-[#DB1B28] text-sm p-4 rounded-lg font-medium">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-[#DB1B28] rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-1.5 h-1.5 bg-[#DB1B28] rounded-full"></div>
+                    </div>
+                    <span>{error}</span>
+                  </div>
+                </div>
+              )}
 
-              <div className="flex flex-wrap gap-2">
-                <Button type="submit" disabled={!isFormValid || isLoading}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {isLoading ? "Creating..." : "Create Student"}
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-100">
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={!isFormValid || isLoading}
+                  className="bg-[#4A73D1] text-white h-12 px-6 font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Create Student
+                    </>
+                  )}
                 </Button>
+
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setGeneratePassword(p => !p)}
+                  className="h-12 px-6 font-semibold border-gray-300 rounded-lg"
                 >
                   {generatePassword ? (
                     <>
@@ -275,9 +435,18 @@ LearnHub Team`
                   )}
                 </Button>
               </div>
-            </form>
+            </div>
           </CardContent>
         </Card>
+
+        {/* Help Text */}
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+          <h3 className="text-sm font-semibold text-[#4A73D1] mb-2">After Creation</h3>
+          <p className="text-sm text-gray-700">
+            The student will receive their login credentials and can immediately access assigned courses. 
+            You can send the credentials via email using the send button after creation.
+          </p>
+        </div>
       </main>
     </div>
   )

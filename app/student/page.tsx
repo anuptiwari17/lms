@@ -147,8 +147,11 @@ export default function StudentDashboard() {
 
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3 px-4 py-2 bg-[var(--ui-input-bg)] rounded-xl">
-                <User className="h-4 w-4 text-[var(--text-secondary)]" />
-                <span className="text-sm font-medium text-[var(--fg-primary)]">{user?.name}</span>
+                <Link href="/student/profile" className="flex items-center space-x-3 px-4 py-2 bg-[var(--ui-input-bg)] rounded-xl hover:bg-gray-100 transition">
+  <User className="h-4 w-4 text-[var(--text-secondary)]" />
+  <span className="text-sm font-medium text-[var(--fg-primary)]">{user?.name}</span>
+</Link>
+
               </div>
               <Button 
                 onClick={handleLogout}

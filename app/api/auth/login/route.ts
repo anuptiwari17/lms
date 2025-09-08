@@ -83,7 +83,9 @@ export async function POST(request: NextRequest) {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role
+      phone: user.phone,
+      role: user.role,
+      created_at: user.created_at
     }
 
     console.log('Creating JWT token for user:', authUser.id)

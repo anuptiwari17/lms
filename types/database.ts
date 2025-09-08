@@ -5,6 +5,7 @@ export interface User {
   email: string
   password_hash?: string // Don't expose this in frontend
   name: string
+  phone?: string | null // NEW: Optional phone field
   role: 'admin' | 'student'
   created_at: string
   updated_at: string
@@ -95,8 +96,11 @@ export interface AuthUser {
   id: string
   email: string
   name: string
+  phone?: string | null
   role: 'admin' | 'student'
+  created_at: string
 }
+
 
 // Dashboard Stats
 export interface DashboardStats {
@@ -180,29 +184,29 @@ export type CourseWithRelations = Course & {
 
 
 
+export interface Announcement {
+  id: string
+  course_id: string
+  content: string
+  created_by: string
+  created_at: string
+  updated_at: string
+  users?: {
+    id: string
+    name: string
+    role: string
+  } | null | undefined
+}
 
+export interface CreateAnnouncementData {
+  course_id: string
+  content: string
+  created_by: string
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export interface UpdateAnnouncementData {
+  content: string
+}
 
 
 
