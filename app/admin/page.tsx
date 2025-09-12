@@ -15,13 +15,13 @@ import {
   Plus, 
   BookOpen, 
   Users, 
-  BarChart3, 
+  TrendingUp, 
+  Award, 
+  Clock, 
+  ArrowRight, 
+  UserPlus,
   Search,
-  TrendingUp,
-  Award,
-  Clock,
-  ArrowRight,
-  UserPlus
+  Sparkles
 } from "lucide-react"
 import type { AuthUser, DashboardStats, CourseWithStats } from "@/types/database"
 
@@ -93,29 +93,21 @@ export default function ModernAdminDashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center space-y-6">
-          {/* Enhanced Loading Animation */}
-          <div className="relative w-16 h-16 mx-auto">
-            {/* Outer spinning ring */}
-            <div className="w-16 h-16 border-4 border-gray-200 rounded-full animate-spin"></div>
-            {/* Inner spinning ring */}
-            <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-[#4A73D1] border-r-[#4A73D1] rounded-full animate-spin"></div>
-            {/* Center logo */}
-            <div className="absolute top-0 left-0 w-16 h-16 flex items-center justify-center">
-              <GraduationCap className="h-6 w-6 text-[#4A73D1]" />
+          <div className="relative w-20 h-20 mx-auto">
+            <div className="w-20 h-20 border-4 border-gray-200 rounded-full animate-spin"></div>
+            <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-[#4A73D1] border-r-[#DB1B28] rounded-full animate-spin"></div>
+            <div className="absolute top-0 left-0 w-20 h-20 flex items-center justify-center">
+              <Sparkles className="h-8 w-8 text-[#4A73D1]" />
             </div>
           </div>
-          
-          {/* Loading text with animation */}
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Loading Dashboard
-            </h3>
-            <div className="flex items-center justify-center space-x-1">
-              <span className="text-gray-600">Please wait</span>
+            <h3 className="text-xl font-semibold text-gray-900">Loading Admin Dashboard</h3>
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-gray-600">Preparing your workspace</span>
               <div className="flex space-x-1">
-                <div className="w-1 h-1 bg-[#4A73D1] rounded-full animate-pulse"></div>
-                <div className="w-1 h-1 bg-[#4A73D1] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                <div className="w-1 h-1 bg-[#4A73D1] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse"></div>
+                <div className="w-1.5 h-1.5 bg-[#DB1B28] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
               </div>
             </div>
           </div>
@@ -127,17 +119,21 @@ export default function ModernAdminDashboard() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto">
-            <div className="w-6 h-6 border-2 border-[#DB1B28] rounded-full flex items-center justify-center">
-              <div className="w-2 h-2 bg-[#DB1B28] rounded-full"></div>
+        <div className="text-center space-y-6">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto shadow-md">
+            <div className="w-10 h-10 border-4 border-[#DB1B28] rounded-full flex items-center justify-center animate-pulse">
+              <div className="w-4 h-4 bg-[#DB1B28] rounded-full"></div>
             </div>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Something went wrong</h3>
-            <p className="text-[#DB1B28] mb-6">{error}</p>
-            <Button onClick={loadDashboardData} className="bg-[#4A73D1] text-white">
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Something went wrong</h3>
+            <p className="text-[#DB1B28] mb-6 text-lg">{error}</p>
+            <Button 
+              onClick={loadDashboardData} 
+              className="bg-[#4A73D1] text-white px-6 py-3 rounded-lg hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200"
+            >
               Try Again
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
         </div>
@@ -146,36 +142,33 @@ export default function ModernAdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 font-sans">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <header className="bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <Link href="/admin" className="flex items-center space-x-3">
               <Image
                 src="/images/bilvens-logo+name.webp"
                 alt="Bilvens Logo"
-                width={160}
-                height={45}
+                width={180}
+                height={50}
                 className="object-contain"
               />
-              <div className="text-xs text-gray-600 font-medium ml-2">
-                Admin Dashboard
-              </div>
+              <Badge className="bg-blue-100 text-[#4A73D1] text-xs font-medium">Admin Dashboard</Badge>
             </Link>
 
             <div className="flex items-center space-x-4">
               <Link href="/admin/profile">
                 <div className="flex items-center space-x-3 px-4 py-2 bg-gray-100 rounded-xl hover:bg-[#4A73D1] hover:text-white transition-all duration-200 cursor-pointer group">
-                  <User className="h-4 w-4 text-gray-600 group-hover:text-white" />
-                  <span className="text-sm font-medium text-gray-900 group-hover:text-white">{user?.name}</span>
+                  <User className="h-5 w-5 text-[#4A73D1] group-hover:text-white" />
+                  <span className="text-sm font-semibold text-gray-900 group-hover:text-white">{user?.name}</span>
                 </div>
               </Link>
               <Button 
                 onClick={handleLogout}
-                variant="ghost" 
-                size="sm" 
-                className="text-gray-600 hover:text-[#DB1B28] hover:bg-red-50"
+                variant="outline" 
+                className="border-[#DB1B28] text-[#DB1B28] hover:bg-[#DB1B28] hover:text-white transition-all duration-200 rounded-lg"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
@@ -186,129 +179,98 @@ export default function ModernAdminDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.name}
+        <div className="mb-10">
+          <h1 className="text-4xl font-extrabold text-gray-900 mb-3">
+            Welcome, {user?.name}
           </h1>
-          <p className="text-gray-600 text-lg">
-            Manage your courses, students, and track learning progress.
+          <p className="text-lg text-gray-600 leading-relaxed">
+            Oversee courses, manage students, and track learning progress with ease.
           </p>
         </div>
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-white border-gray-200 shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Total Courses</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalCourses}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            {[
+              { title: "Total Courses", value: stats.totalCourses, icon: BookOpen, bg: "bg-blue-50", color: "text-[#4A73D1]" },
+              { title: "Total Students", value: stats.totalStudents, icon: Users, bg: "bg-red-50", color: "text-[#DB1B28]" },
+              { title: "Average Progress", value: `${stats.averageProgress}%`, icon: TrendingUp, bg: "bg-green-50", color: "text-green-600" },
+              { title: "Completions", value: stats.totalCompletions, icon: Award, bg: "bg-yellow-50", color: "text-yellow-600" },
+            ].map((stat, index) => (
+              <Card 
+                key={index} 
+                className="bg-white border-gray-100 shadow-md hover:shadow-lg transition-all duration-200 rounded-xl overflow-hidden"
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-2">{stat.title}</p>
+                      <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                    </div>
+                    <div className={`p-3 ${stat.bg} rounded-xl shadow-sm`}>
+                      <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                    </div>
                   </div>
-                  <div className="p-3 bg-blue-50 rounded-xl">
-                    <BookOpen className="h-6 w-6 text-[#4A73D1]" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-gray-200 shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Total Students</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalStudents}</p>
-                  </div>
-                  <div className="p-3 bg-blue-50 rounded-xl">
-                    <Users className="h-6 w-6 text-[#4A73D1]" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-gray-200 shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Average Progress</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.averageProgress}%</p>
-                  </div>
-                  <div className="p-3 bg-green-50 rounded-xl">
-                    <TrendingUp className="h-6 w-6 text-green-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-gray-200 shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Completions</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.totalCompletions}</p>
-                  </div>
-                  <div className="p-3 bg-yellow-50 rounded-xl">
-                    <Award className="h-6 w-6 text-yellow-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           <Link href="/admin/courses/new" className="block">
-            <Button className="w-full bg-[#4A73D1] text-white h-12 text-base font-semibold">
+            <Button className="w-full bg-[#4A73D1] text-white h-12 text-base font-semibold rounded-lg hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200">
               <Plus className="h-5 w-5 mr-2" />
               Create Course
             </Button>
           </Link>
           <Link href="/admin/students" className="block">
-            <Button className="w-full bg-[#DB1B28] text-white h-12 text-base font-semibold">
+            <Button className="w-full bg-[#DB1B28] text-white h-12 text-base font-semibold rounded-lg hover:bg-[#C11723] hover:scale-105 transition-all duration-200">
               <Users className="h-5 w-5 mr-2" />
               Manage Students
             </Button>
           </Link>
           <Link href="/admin/students/new" className="block">
-            <Button variant="outline" className="w-full h-12 text-base font-semibold border-gray-300 hover:bg-gray-50">
-              <UserPlus className="h-5 w-5 mr-2" />
+            <Button 
+              variant="outline" 
+              className="w-full h-12 text-base font-semibold border-gray-300 hover:bg-gray-100 hover:scale-105 transition-all duration-200 rounded-lg"
+            >
+              <UserPlus className="h-5 w-5 mr-2 text-[#4A73D1]" />
               Add Student
             </Button>
           </Link>
         </div>
 
         {/* Courses Section */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Your Courses</h2>
-              <p className="text-gray-600">Manage and track all your courses</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Your Courses</h2>
+              <p className="text-lg text-gray-600 leading-relaxed">Monitor and manage all your educational content</p>
             </div>
             
-            {/* Search */}
-            <div className="relative w-full sm:w-80">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <div className="relative w-full sm:w-96">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
               <Input
                 placeholder="Search courses..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white border-gray-300 focus:border-[#4A73D1] h-11"
+                className="pl-10 bg-white border-gray-200 h-12 rounded-lg focus:border-[#4A73D1] transition-colors duration-200 shadow-sm"
               />
             </div>
           </div>
 
-          {/* Courses Grid */}
           {filteredCourses.length === 0 ? (
-            <Card className="bg-white border-gray-200 shadow-sm">
+            <Card className="bg-white border-gray-100 shadow-md rounded-xl">
               <CardContent className="p-12 text-center">
-                <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   {searchTerm ? 'No courses found' : 'No courses yet'}
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-6 text-lg leading-relaxed">
                   {searchTerm 
                     ? 'Try adjusting your search terms or clear the filter.'
                     : 'Create your first course to get started with the platform.'
@@ -316,8 +278,8 @@ export default function ModernAdminDashboard() {
                 </p>
                 {!searchTerm && (
                   <Link href="/admin/courses/new">
-                    <Button className="bg-[#4A73D1] text-white">
-                      <Plus className="h-4 w-4 mr-2" />
+                    <Button className="bg-[#4A73D1] text-white px-6 py-3 rounded-lg hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200">
+                      <Plus className="h-5 w-5 mr-2" />
                       Create Your First Course
                     </Button>
                   </Link>
@@ -328,19 +290,19 @@ export default function ModernAdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCourses.map((course) => (
                 <Link key={course.id} href={`/admin/courses/${course.id}`}>
-                  <Card className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group h-full">
+                  <Card className="bg-white border-gray-100 shadow-md hover:shadow-xl transition-all duration-300 rounded-xl cursor-pointer group h-full">
                     <CardHeader className="pb-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="p-2 bg-blue-50 rounded-lg group-hover:bg-[#4A73D1] transition-colors">
-                          <BookOpen className="h-5 w-5 text-[#4A73D1] group-hover:text-white transition-colors" />
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="p-3 bg-blue-50 rounded-lg group-hover:bg-[#4A73D1] transition-all duration-200">
+                          <BookOpen className="h-6 w-6 text-[#4A73D1] group-hover:text-white transition-all" />
                         </div>
-                        <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-[#4A73D1] transition-colors" />
+                        <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-[#DB1B28] transition-all" />
                       </div>
-                      <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-[#4A73D1] transition-colors line-clamp-2">
+                      <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-[#4A73D1] transition-colors line-clamp-2">
                         {course.title}
                       </CardTitle>
                       {course.description && (
-                        <CardDescription className="text-gray-600 text-sm leading-relaxed line-clamp-3">
+                        <CardDescription className="text-gray-600 text-base leading-relaxed line-clamp-3">
                           {course.description}
                         </CardDescription>
                       )}
@@ -348,42 +310,39 @@ export default function ModernAdminDashboard() {
                     
                     <CardContent className="pt-0">
                       <div className="space-y-4">
-                        {/* Course Stats */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between text-gray-600 text-sm">
                           <div className="flex items-center space-x-4">
-                            <div className="flex items-center text-gray-600 text-sm">
-                              <BookOpen className="h-4 w-4 mr-1" />
+                            <div className="flex items-center">
+                              <BookOpen className="h-4 w-4 mr-1 text-[#4A73D1]" />
                               <span>{course.module_count} modules</span>
                             </div>
-                            <div className="flex items-center text-gray-600 text-sm">
-                              <Users className="h-4 w-4 mr-1" />
+                            <div className="flex items-center">
+                              <Users className="h-4 w-4 mr-1 text-[#DB1B28]" />
                               <span>{course.enrolled_students} students</span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Progress */}
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
                             <span className="text-sm font-medium text-gray-600">
                               Avg Progress: {course.avg_progress}%
                             </span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="w-full bg-gray-100 rounded-full h-2.5">
                             <div 
-                              className="bg-gradient-to-r from-[#4A73D1] to-[#DB1B28] h-2 rounded-full transition-all duration-300"
+                              className="bg-gradient-to-r from-[#4A73D1] to-[#DB1B28] h-2.5 rounded-full transition-all duration-300"
                               style={{ width: `${Math.min(course.avg_progress, 100)}%` }}
                             />
                           </div>
                         </div>
 
-                        {/* Footer */}
-                        <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                           <div className="flex items-center text-xs text-gray-500">
-                            <Clock className="h-3 w-3 mr-1" />
+                            <Clock className="h-4 w-4 mr-1" />
                             <span>{new Date(course.created_at).toLocaleDateString()}</span>
                           </div>
-                          <Badge variant="secondary" className="bg-blue-50 text-[#4A73D1] text-xs">
+                          <Badge className="bg-blue-100 text-[#4A73D1] text-xs font-medium">
                             {course.total_completions} completed
                           </Badge>
                         </div>

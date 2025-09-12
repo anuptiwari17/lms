@@ -3,9 +3,9 @@
 export interface User {
   id: string
   email: string
-  password_hash?: string // Don't expose this in frontend
+  password_hash?: string
   name: string
-  phone?: string | null // NEW: Optional phone field
+  phone?: string | null
   role: 'admin' | 'student'
   created_at: string
   updated_at: string
@@ -53,6 +53,16 @@ export interface ModuleProgress {
   created_at: string
 }
 
+// New Announcement interface
+export interface Announcement {
+  id: string
+  course_id: string
+  content: string
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
 // Extended types for frontend use
 export interface CourseWithStats extends Course {
   module_count: number
@@ -78,6 +88,15 @@ export interface CourseWithModules extends Course {
   enrollment?: Enrollment
 }
 
+// Extended types for announcements
+export interface AnnouncementWithAuthor extends Announcement {
+  author: User
+}
+
+export interface CourseWithAnnouncements extends Course {
+  announcements: AnnouncementWithAuthor[]
+}
+
 // API Response types (Fixed Generic)
 export interface ApiResponse<T = unknown> {
   success: boolean
@@ -100,7 +119,6 @@ export interface AuthUser {
   role: 'admin' | 'student'
   created_at: string
 }
-
 
 // Dashboard Stats
 export interface DashboardStats {
@@ -141,6 +159,16 @@ export interface CreateStudentData {
   password?: string
 }
 
+// Announcement form data types
+export interface CreateAnnouncementData {
+  content: string
+  course_id: string
+}
+
+export interface UpdateAnnouncementData {
+  content: string
+}
+
 // Course enrollment data
 export interface EnrollmentData {
   studentIds: string[]
@@ -174,39 +202,25 @@ export interface DatabaseError {
   details?: string
 }
 
-
-
 // Supabase relations for courses
 export type CourseWithRelations = Course & {
   modules: Module[]
   enrollments: Enrollment[]
+  announcements: Announcement[]
 }
 
 
 
-export interface Announcement {
-  id: string
-  course_id: string
-  content: string
-  created_by: string
-  created_at: string
-  updated_at: string
-  users?: {
-    id: string
-    name: string
-    role: string
-  } | null | undefined
-}
 
-export interface CreateAnnouncementData {
-  course_id: string
-  content: string
-  created_by: string
-}
 
-export interface UpdateAnnouncementData {
-  content: string
-}
+
+
+
+
+
+
+
+
 
 
 

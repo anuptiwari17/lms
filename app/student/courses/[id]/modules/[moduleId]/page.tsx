@@ -1,13 +1,12 @@
-// app/student/courses/[id]/modules/[moduleId]/page.tsx - Enhanced Module Player
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import { 
   ArrowLeft, 
   ArrowRight,
@@ -17,14 +16,9 @@ import {
   SkipForward,
   SkipBack,
   BookOpen,
-  FileText,
-  Download,
-  Clock,
-  X,
-  Maximize,
-  Volume2,
-  Settings,
-  Pause
+  Sparkles,
+  AlertTriangle,
+  Clock
 } from "lucide-react"
 import { utils } from "@/lib/database"
 import type { Module, Course } from "@/types/database"
@@ -32,8 +26,6 @@ import type { Module, Course } from "@/types/database"
 interface ModuleWithProgress extends Module {
   completed: boolean
   completed_at: string | null
-  file_url?: string | null
-  file_title?: string | null
 }
 
 interface CourseData extends Course {
@@ -43,131 +35,6 @@ interface CourseData extends Course {
     enrolled_at: string
     completed_at: string | null
   }
-}
-
-interface CustomVideoPlayerProps {
-  module: ModuleWithProgress
-  isFullPage?: boolean
-  onClose?: () => void
-}
-
-const CustomVideoPlayer = ({ module, isFullPage = false, onClose }: CustomVideoPlayerProps) => {
-  const videoRef = useRef<HTMLIFrameElement>(null)
-  const [showControls, setShowControls] = useState(true)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-
-  const getYouTubeEmbedUrl = (url: string) => {
-    const videoId = utils.extractYouTubeVideoId(url)
-    return videoId ? `https://www.youtube.com/embed/${videoId}?enablejsapi=1&controls=1&modestbranding=1&rel=0&showinfo=0&autoplay=1` : null
-  }
-
-  const embedUrl = getYouTubeEmbedUrl(module.video_url)
-
-  useEffect(() => {
-    let timeout: NodeJS.Timeout
-    if (showControls && !isFullPage) {
-      timeout = setTimeout(() => {
-        setShowControls(false)
-      }, 3000)
-    }
-    return () => clearTimeout(timeout)
-  }, [showControls, isFullPage])
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen()
-      setIsFullscreen(true)
-    } else {
-      document.exitFullscreen()
-      setIsFullscreen(false)
-    }
-  }
-
-  if (isFullPage) {
-    return (
-      <div className="w-full">
-        {embedUrl ? (
-          <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
-            <iframe
-              ref={videoRef}
-              src={embedUrl}
-              title={module.title}
-              className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
-          </div>
-        ) : (
-          <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <Play className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Video not available</h3>
-              <p className="text-gray-400 mb-4">Unable to load video content</p>
-              <a 
-                href={module.video_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-blue-400 hover:text-blue-300"
-              >
-                <ExternalLink className="h-4 w-4 mr-1" />
-                Open Original Link
-              </a>
-            </div>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  // Modal version (if needed)
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center">
-      <div className="relative w-full h-full max-w-7xl mx-auto">
-        {/* Close Button */}
-        <div className="absolute top-6 right-6 z-10">
-          <Button
-            onClick={onClose}
-            variant="ghost"
-            size="sm"
-            className="text-white hover:bg-white/20"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Video Container */}
-        <div className="w-full h-full flex items-center justify-center p-6">
-          {embedUrl ? (
-            <div className="w-full h-full max-w-6xl max-h-[80vh] bg-black rounded-lg overflow-hidden">
-              <iframe
-                ref={videoRef}
-                src={embedUrl}
-                title={module.title}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </div>
-          ) : (
-            <div className="bg-gray-900 rounded-lg p-12 text-center max-w-md">
-              <Play className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Video not available</h3>
-              <p className="text-gray-400 mb-4">Unable to load video content</p>
-              <a 
-                href={module.video_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-blue-400 hover:text-blue-300"
-              >
-                <ExternalLink className="h-4 w-4 mr-1" />
-                Open Original Link
-              </a>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
 }
 
 export default function ModulePlayerPage({ 
@@ -183,7 +50,20 @@ export default function ModulePlayerPage({
   const [courseId, setCourseId] = useState<string>("")
   const [moduleId, setModuleId] = useState<string>("")
   
-  // Extract params on component mount
+  // Prevent context menu (right-click)
+  useEffect(() => {
+    const handleContextMenu = (event: MouseEvent) => {
+      event.preventDefault();
+    };
+
+    document.addEventListener("contextmenu", handleContextMenu);
+
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
+
+  // Extract params
   useEffect(() => {
     const extractParams = async () => {
       const resolvedParams = await params;
@@ -253,7 +133,7 @@ export default function ModulePlayerPage({
         throw new Error(result.error || 'Failed to update progress')
       }
 
-      // Reload data to get updated progress
+      // Reload data
       await loadData()
       
     } catch (error) {
@@ -262,6 +142,11 @@ export default function ModulePlayerPage({
     } finally {
       setMarkingComplete(false)
     }
+  }
+
+  const getYouTubeEmbedUrl = (url: string) => {
+    const videoId = utils.extractYouTubeVideoId(url)
+    return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1` : null
   }
 
   const getAdjacentModules = () => {
@@ -279,13 +164,28 @@ export default function ModulePlayerPage({
     }
   }
 
-  // Don't render until we have the params
   if (!courseId || !moduleId) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[var(--text-secondary)]">Loading...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="relative w-20 h-20 mx-auto">
+            <div className="w-20 h-20 border-4 border-gray-200 rounded-full animate-spin"></div>
+            <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-[#4A73D1] border-r-[#DB1B28] rounded-full animate-spin"></div>
+            <div className="absolute top-0 left-0 w-20 h-20 flex items-center justify-center">
+              <Sparkles className="h-8 w-8 text-[#4A73D1]" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-gray-900">Loading Module</h3>
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-gray-600">Preparing your content</span>
+              <div className="flex space-x-1">
+                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse"></div>
+                <div className="w-1.5 h-1.5 bg-[#DB1B28] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -293,10 +193,26 @@ export default function ModulePlayerPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[var(--text-secondary)]">Loading module...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="relative w-20 h-20 mx-auto">
+            <div className="w-20 h-20 border-4 border-gray-200 rounded-full animate-spin"></div>
+            <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-[#4A73D1] border-r-[#DB1B28] rounded-full animate-spin"></div>
+            <div className="absolute top-0 left-0 w-20 h-20 flex items-center justify-center">
+              <Sparkles className="h-8 w-8 text-[#4A73D1]" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-gray-900">Loading Module</h3>
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-gray-600">Preparing your content</span>
+              <div className="flex space-x-1">
+                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse"></div>
+                <div className="w-1.5 h-1.5 bg-[#DB1B28] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -304,53 +220,58 @@ export default function ModulePlayerPage({
 
   if (error || !course || !currentModule) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Module not found'}</p>
-          <Link href="/student">
-            <Button className="btn-primary">Back to Dashboard</Button>
-          </Link>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto shadow-md">
+            <div className="w-10 h-10 border-4 border-[#DB1B28] rounded-full flex items-center justify-center animate-pulse">
+              <div className="w-4 h-4 bg-[#DB1B28] rounded-full"></div>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Something went wrong</h3>
+            <p className="text-[#DB1B28] mb-6 text-lg">{error || 'Module not found'}</p>
+            <Link href="/student">
+              <Button className="bg-[#4A73D1] text-white px-6 py-3 rounded-lg hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200">
+                Back to Dashboard
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     )
   }
 
+  const embedUrl = getYouTubeEmbedUrl(currentModule.video_url)
   const { prev, next } = getAdjacentModules()
   const completedModules = course.modules.filter(m => m.completed).length
-  const currentModuleIndex = course.modules.findIndex(m => m.id === currentModule.id) + 1
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
+    <div className="min-h-screen bg-gray-50 font-sans">
       {/* Header */}
-      <header className="bg-white border-b border-[var(--ui-card-border)] shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <header className="bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 min-w-0">
               <Link href={`/student/courses/${courseId}`}>
-                <Button variant="ghost" size="sm" className="text-[var(--text-secondary)] hover:text-[var(--brand-primary)] shrink-0">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                <Button 
+                  variant="ghost" 
+                  className="text-gray-600 hover:text-[#4A73D1] hover:bg-blue-50 transition-all duration-200 rounded-lg shrink-0"
+                >
+                  <ArrowLeft className="h-5 w-5 mr-2" />
                   Back to Course
                 </Button>
               </Link>
-              <div className="h-6 w-px bg-[var(--ui-card-border)] shrink-0"></div>
+              <div className="h-6 w-px bg-gray-200 shrink-0"></div>
               <div className="min-w-0">
-                <h1 className="text-lg font-bold text-[var(--fg-primary)] truncate">{currentModule.title}</h1>
-                <p className="text-sm text-[var(--text-secondary)] truncate">{course.title}</p>
+                <h1 className="text-xl font-bold text-gray-900 truncate">{currentModule.title}</h1>
+                <p className="text-sm text-gray-600 truncate">{course.title}</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-3 shrink-0">
-              <Badge variant="secondary" className="bg-[var(--ui-input-bg)] text-[var(--brand-primary)]">
-                Module {currentModuleIndex} of {course.modules.length}
-              </Badge>
-              <Badge 
-                variant={currentModule.completed ? "default" : "secondary"}
-                className={currentModule.completed 
-                  ? "bg-green-100 text-green-800" 
-                  : "bg-[var(--ui-input-bg)] text-[var(--brand-primary)]"
-                }
-              >
-                {currentModule.completed ? 'Completed' : 'In Progress'}
+              <Badge className="bg-blue-100 text-[#4A73D1] text-xs font-medium">
+                Module {course.modules.findIndex(m => m.id === currentModule.id) + 1} of {course.modules.length}
               </Badge>
             </div>
           </div>
@@ -358,32 +279,80 @@ export default function ModulePlayerPage({
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Video Player */}
           <div className="lg:col-span-3 space-y-6">
-            {/* Video */}
-            <div className="bg-white rounded-xl shadow-sm border border-[var(--ui-card-border)] overflow-hidden">
-              <CustomVideoPlayer module={currentModule} isFullPage={true} />
+            {/* Stats (Inspired by reference image) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <Card className="bg-white border-gray-100 shadow-md rounded-xl">
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold text-[#4A73D1]">{currentModule.duration_minutes || 'N/A'}</p>
+                  <p className="text-sm text-gray-600">Minutes</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-white border-gray-100 shadow-md rounded-xl">
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold text-[#4A73D1]">{currentModule.completed ? 'Yes' : 'No'}</p>
+                  <p className="text-sm text-gray-600">Completed</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-white border-gray-100 shadow-md rounded-xl">
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold text-[#4A73D1]">{course.enrollment.progress_percentage}%</p>
+                  <p className="text-sm text-gray-600">Course Progress</p>
+                </CardContent>
+              </Card>
             </div>
 
+            {/* Video */}
+            {embedUrl ? (
+              <div className="aspect-video rounded-xl overflow-hidden shadow-lg bg-black">
+                <iframe
+                  src={embedUrl}
+                  title={currentModule.title}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; screen-wake-lock"
+                  allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  loading="lazy"
+                />
+              </div>
+            ) : (
+              <Card className="bg-white border-gray-100 shadow-md rounded-xl">
+                <CardContent className="p-12 text-center">
+                  <Play className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Video not available</h3>
+                  <p className="text-gray-600 mb-6 text-base leading-relaxed">The video URL appears to be invalid.</p>
+                  <a 
+                    href={currentModule.video_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-[#4A73D1] hover:text-[#3B5BB8] transition-colors duration-200"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-1" />
+                    Open Original Link
+                  </a>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Module Info */}
-            <Card className="bg-white border-[var(--ui-card-border)] shadow-sm">
+            <Card className="bg-white border-gray-100 shadow-md rounded-xl">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-2xl font-bold text-[var(--fg-primary)] mb-2">{currentModule.title}</CardTitle>
-                    <div className="flex items-center space-x-4">
+                  <div>
+                    <CardTitle className="text-xl font-bold text-gray-900">{currentModule.title}</CardTitle>
+                    <div className="flex items-center space-x-4 mt-2">
                       {currentModule.duration_minutes > 0 && (
-                        <div className="flex items-center text-[var(--text-secondary)]">
-                          <Clock className="h-4 w-4 mr-1" />
-                          <span className="text-sm">{currentModule.duration_minutes} min</span>
-                        </div>
+                        <Badge className="bg-blue-100 text-[#4A73D1] text-xs font-medium">
+                          {currentModule.duration_minutes} min
+                        </Badge>
                       )}
-                      {currentModule.completed && currentModule.completed_at && (
-                        <Badge className="bg-green-100 text-green-800">
+                      {currentModule.completed && (
+                        <Badge className="bg-green-100 text-green-800 text-xs font-medium">
                           <CheckCircle className="h-3 w-3 mr-1" />
-                          Completed on {new Date(currentModule.completed_at).toLocaleDateString()}
+                          Completed
                         </Badge>
                       )}
                     </div>
@@ -392,93 +361,44 @@ export default function ModulePlayerPage({
                   <Button
                     onClick={() => handleMarkComplete(!currentModule.completed)}
                     disabled={markingComplete}
+                    className={`rounded-lg transition-all duration-200 ${
+                      currentModule.completed 
+                        ? 'bg-green-600 hover:bg-green-700 text-white' 
+                        : 'border-gray-300 text-[#4A73D1] hover:bg-blue-50 hover:text-[#3B5BB8]'
+                    }`}
                     variant={currentModule.completed ? "default" : "outline"}
-                    size="lg"
-                    className={currentModule.completed 
-                      ? "bg-green-600 hover:bg-green-700 text-white" 
-                      : "border-[var(--brand-primary)] text-[var(--brand-primary)] hover:bg-[var(--brand-primary)] hover:text-white"
-                    }
                   >
                     {markingComplete ? (
                       <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
+                    ) : currentModule.completed ? (
+                      <CheckCircle className="h-4 w-4 mr-2" />
                     ) : (
-                      <CheckCircle className="h-5 w-5 mr-2" />
+                      <CheckCircle className="h-4 w-4 mr-2" />
                     )}
                     {currentModule.completed ? 'Completed' : 'Mark Complete'}
                   </Button>
                 </div>
               </CardHeader>
               
-              <CardContent className="space-y-6">
-                {currentModule.description && (
-                  <div>
-                    <h3 className="font-semibold text-[var(--fg-primary)] mb-2">About this module</h3>
-                    <p className="text-[var(--text-secondary)] leading-relaxed">
-                      {currentModule.description}
-                    </p>
-                  </div>
-                )}
-
-                {/* File Resources */}
-                {currentModule.file_url && (
-                  <div>
-                    <h3 className="font-semibold text-[var(--fg-primary)] mb-3">Course Materials</h3>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="bg-[var(--brand-primary)] p-2 rounded-lg">
-                            <FileText className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-[var(--fg-primary)]">
-                              {currentModule.file_title || 'Course Material'}
-                            </p>
-                            <p className="text-sm text-[var(--text-secondary)]">
-                              Additional resources for this module
-                            </p>
-                          </div>
-                        </div>
-                        <a 
-                          href={currentModule.file_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                        >
-                          <Button variant="outline" size="sm">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
-                          </Button>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* External Link */}
-                <div>
-                  <h3 className="font-semibold text-[var(--fg-primary)] mb-3">External Resources</h3>
-                  <a 
-                    href={currentModule.video_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-[var(--brand-primary)] hover:text-[var(--brand-secondary)] font-medium"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Watch on Original Platform
-                  </a>
-                </div>
-              </CardContent>
+              {currentModule.description && (
+                <CardContent>
+                  <p className="text-gray-600 text-base leading-relaxed">
+                    {currentModule.description}
+                  </p>
+                </CardContent>
+              )}
             </Card>
 
             {/* Navigation */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mt-6">
               {prev ? (
                 <Link href={`/student/courses/${courseId}/modules/${prev.id}`}>
-                  <Button variant="outline" size="lg" className="border-[var(--ui-card-border)] group">
-                    <SkipBack className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-                    <div className="text-left">
-                      <div className="text-xs text-[var(--text-secondary)]">Previous</div>
-                      <div className="font-medium truncate max-w-48">{prev.title}</div>
-                    </div>
+                  <Button 
+                    variant="outline" 
+                    className="border-gray-300 text-[#4A73D1] hover:bg-blue-50 hover:text-[#3B5BB8] rounded-lg transition-all duration-200"
+                  >
+                    <SkipBack className="h-4 w-4 mr-2" />
+                    Previous : {prev.title}
                   </Button>
                 </Link>
               ) : (
@@ -487,18 +407,15 @@ export default function ModulePlayerPage({
               
               {next ? (
                 <Link href={`/student/courses/${courseId}/modules/${next.id}`}>
-                  <Button size="lg" className="btn-primary group">
-                    <div className="text-right">
-                      <div className="text-xs opacity-90">Next</div>
-                      <div className="font-medium truncate max-w-48">{next.title}</div>
-                    </div>
-                    <SkipForward className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <Button className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200 rounded-lg">
+                    Next Module : {next.title}
+                    <SkipForward className="h-4 w-4 ml-2" />
                   </Button>
                 </Link>
               ) : (
                 <Link href={`/student/courses/${courseId}`}>
-                  <Button size="lg" className="btn-primary">
-                    <BookOpen className="h-5 w-5 mr-2" />
+                  <Button className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200 rounded-lg">
+                    <BookOpen className="h-4 w-4 mr-2" />
                     Back to Course
                   </Button>
                 </Link>
@@ -506,102 +423,80 @@ export default function ModulePlayerPage({
             </div>
           </div>
 
-          {/* Course Sidebar */}
-          <div className="space-y-6">
-            {/* Progress */}
-            <Card className="bg-white border-[var(--ui-card-border)] shadow-sm">
+          {/* Sidebar (Sticky on desktop) */}
+          <div className="lg:sticky lg:top-24 lg:self-start space-y-6">
+            {/* Course Progress */}
+            <Card className="bg-white border-gray-100 shadow-md rounded-xl">
               <CardHeader>
-                <CardTitle className="text-lg font-bold text-[var(--fg-primary)]">Course Progress</CardTitle>
+                <CardTitle className="text-lg font-bold text-gray-900">Course Progress</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center">
-                  <div className="relative w-20 h-20 mx-auto mb-4">
-                    <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        className="text-gray-300"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        fill="transparent"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                      <path
-                        className="text-[var(--brand-primary)]"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeDasharray={`${course.enrollment.progress_percentage}, 100`}
-                        strokeLinecap="round"
-                        fill="transparent"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xl font-bold text-[var(--brand-primary)]">
-                        {course.enrollment.progress_percentage}%
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    {completedModules} of {course.modules.length} modules completed
+                  <p className="text-2xl font-bold text-[#4A73D1]">
+                    {course.enrollment.progress_percentage}%
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {completedModules} of {course.modules.length} modules
                   </p>
                 </div>
+                
+                <Progress 
+                  value={course.enrollment.progress_percentage} 
+                  className="h-2 bg-gray-100 [&>div]:bg-gradient-to-r [&>div]:from-[#4A73D1] [&>div]:to-[#DB1B28]" 
+                />
               </CardContent>
             </Card>
 
-            {/* Module List */}
-            <Card className="bg-white border-[var(--ui-card-border)] shadow-sm">
+            {/* Module List (Scrollable if many) */}
+            <Card className="bg-white border-gray-100 shadow-md rounded-xl max-h-[60vh] overflow-y-auto">
               <CardHeader>
-                <CardTitle className="text-lg font-bold text-[var(--fg-primary)]">All Modules</CardTitle>
+                <CardTitle className="text-lg font-bold text-gray-900">Modules</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="max-h-96 overflow-y-auto">
+                <div className="space-y-1">
                   {course.modules
                     .filter(m => m.is_active)
                     .sort((a, b) => a.order_index - b.order_index)
                     .map((module, index) => (
-                    <Link 
-                      key={module.id} 
-                      href={`/student/courses/${courseId}/modules/${module.id}`}
-                      className={`block p-4 hover:bg-[var(--ui-input-bg)] transition-colors border-b border-gray-100 last:border-b-0 ${
-                        module.id === currentModule.id ? 'bg-[var(--brand-primary)]/10 border-r-4 border-r-[var(--brand-primary)]' : ''
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3 min-w-0 flex-1">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                            module.completed 
-                              ? 'bg-green-600 text-white' 
-                              : module.id === currentModule.id
-                                ? 'bg-[var(--brand-primary)] text-white'
-                                : 'bg-gray-200 text-[var(--text-secondary)]'
-                          }`}>
-                            {module.completed ? (
-                              <CheckCircle className="h-4 w-4" />
-                            ) : (
-                              index + 1
-                            )}
-                          </div>
-                          <div className="min-w-0 flex-1">
+                      <Link 
+                        key={module.id} 
+                        href={`/student/courses/${courseId}/modules/${module.id}`}
+                        className={`block p-4 hover:bg-blue-50 transition-all duration-200 ${
+                          module.id === currentModule.id ? 'bg-blue-50 border-r-4 border-[#4A73D1]' : ''
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3 min-w-0">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                              module.completed 
+                                ? 'bg-green-600 text-white' 
+                                : module.id === currentModule.id
+                                  ? 'bg-[#4A73D1] text-white'
+                                  : 'bg-gray-200 text-gray-600'
+                            } transition-all duration-200 group-hover:scale-105`}>
+                              {module.completed ? (
+                                <CheckCircle className="h-4 w-4" />
+                              ) : (
+                                index + 1
+                              )}
+                            </div>
                             <p className={`text-sm font-medium truncate ${
                               module.id === currentModule.id 
-                                ? 'text-[var(--brand-primary)]' 
-                                : 'text-[var(--fg-primary)]'
+                                ? 'text-[#4A73D1]' 
+                                : 'text-gray-900'
                             }`}>
                               {module.title}
                             </p>
-                            {module.duration_minutes > 0 && (
-                              <p className="text-xs text-[var(--text-secondary)] mt-1">
-                                {module.duration_minutes} min
-                              </p>
-                            )}
                           </div>
+                          
+                          {module.duration_minutes > 0 && (
+                            <Badge className="bg-blue-100 text-[#4A73D1] text-xs font-medium">
+                              {module.duration_minutes} min
+                            </Badge>
+                          )}
                         </div>
-                        
-                        {module.id === currentModule.id && (
-                          <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full shrink-0"></div>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
+                      </Link>
+                    ))}
                 </div>
               </CardContent>
             </Card>

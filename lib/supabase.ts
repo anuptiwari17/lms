@@ -1,3 +1,4 @@
+
 // lib/supabase.ts - Supabase Configuration (Fixed)
 
 import { createClient } from '@supabase/supabase-js'
@@ -109,6 +110,7 @@ export const db = {
     }
   }
 }
+
 
 
 

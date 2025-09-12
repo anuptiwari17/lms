@@ -1,4 +1,3 @@
-// app/student/profile/page.tsx - Student Profile Page
 "use client"
 
 import { useState, useEffect } from "react"
@@ -18,7 +17,9 @@ import {
   Shield,
   Edit,
   Eye,
-  EyeOff
+  EyeOff,
+  AlertTriangle,
+  CheckCircle
 } from "lucide-react"
 import type { AuthUser } from "@/types/database"
 
@@ -136,10 +137,10 @@ export default function StudentProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[var(--text-secondary)]">Loading profile...</p>
+          <div className="w-8 h-8 border-4 border-[#4A73D1] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
         </div>
       </div>
     )
@@ -147,11 +148,11 @@ export default function StudentProfile() {
 
   if (error || !user) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Profile not found'}</p>
+          <p className="text-[#DB1B28] mb-4">{error || 'Profile not found'}</p>
           <Link href="/student">
-            <Button className="btn-primary">Back to Dashboard</Button>
+            <Button className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] rounded-lg">Back to Dashboard</Button>
           </Link>
         </div>
       </div>
@@ -159,22 +160,27 @@ export default function StudentProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
+    <div className="min-h-screen bg-gray-50 font-sans">
       {/* Header */}
-      <header className="bg-white border-b border-[var(--ui-card-border)] shadow-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-6 py-4">
+      <header className="bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link href="/student">
-                <Button variant="ghost" size="sm" className="text-[var(--text-secondary)] hover:text-[var(--brand-primary)]">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-gray-600 hover:text-[#4A73D1] transition-colors"
+                  aria-label="Back to Dashboard"
+                >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Dashboard
                 </Button>
               </Link>
-              <div className="h-6 w-px bg-[var(--ui-card-border)]"></div>
+              <div className="h-6 w-px bg-gray-200"></div>
               <div>
-                <h1 className="text-xl font-bold text-[var(--fg-primary)]">My Profile</h1>
-                <p className="text-sm text-[var(--text-secondary)]">View and manage your account</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">My Profile</h1>
+                <p className="text-sm text-gray-600">Manage your account details</p>
               </div>
             </div>
           </div>
@@ -182,14 +188,16 @@ export default function StudentProfile() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        <div className="space-y-6">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-8">
           {/* Profile Information Card */}
-          <Card className="bg-white border-[var(--ui-card-border)] shadow-sm">
+          <Card className="bg-white border-gray-100 shadow-md rounded-xl">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-bold text-[var(--fg-primary)]">Personal Information</CardTitle>
-                <div className="flex items-center space-x-2 text-[var(--text-secondary)]">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">
+                  Personal Information
+                </CardTitle>
+                <div className="flex items-center space-x-2 text-gray-600">
                   <Edit className="h-4 w-4" />
                   <span className="text-sm">Read-only</span>
                 </div>
@@ -199,47 +207,45 @@ export default function StudentProfile() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Name */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[var(--fg-primary)] flex items-center">
-                    <User className="h-4 w-4 mr-2 text-[var(--text-secondary)]" />
+                  <Label className="text-sm font-medium text-gray-600 flex items-center">
+                    <User className="h-4 w-4 mr-2 text-gray-400" />
                     Full Name
                   </Label>
-                  <div className="p-3 bg-[var(--ui-input-bg)] border border-[var(--ui-card-border)] rounded-lg">
-                    <p className="text-[var(--fg-primary)] font-medium">{user.name}</p>
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                    <p className="text-gray-900 font-medium">{user.name}</p>
                   </div>
                 </div>
 
                 {/* Email */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[var(--fg-primary)] flex items-center">
-                    <Mail className="h-4 w-4 mr-2 text-[var(--text-secondary)]" />
+                  <Label className="text-sm font-medium text-gray-600 flex items-center">
+                    <Mail className="h-4 w-4 mr-2 text-gray-400" />
                     Email Address
                   </Label>
-                  <div className="p-3 bg-[var(--ui-input-bg)] border border-[var(--ui-card-border)] rounded-lg">
-                    <p className="text-[var(--fg-primary)] font-medium">{user.email}</p>
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                    <p className="text-gray-900 font-medium">{user.email}</p>
                   </div>
                 </div>
 
-                {/* Phone (if available) */}
-                {user.phone && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-[var(--fg-primary)] flex items-center">
-                      <Phone className="h-4 w-4 mr-2 text-[var(--text-secondary)]" />
-                      Phone Number
-                    </Label>
-                    <div className="p-3 bg-[var(--ui-input-bg)] border border-[var(--ui-card-border)] rounded-lg">
-                      <p className="text-[var(--fg-primary)] font-medium">{user.phone}</p>
-                    </div>
+                {/* Phone */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-600 flex items-center">
+                    <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                    Phone Number
+                  </Label>
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                    <p className="text-gray-900 font-medium">{user.phone || 'Not provided'}</p>
                   </div>
-                )}
+                </div>
 
                 {/* Account Created */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[var(--fg-primary)] flex items-center">
-                    <Calendar className="h-4 w-4 mr-2 text-[var(--text-secondary)]" />
+                  <Label className="text-sm font-medium text-gray-600 flex items-center">
+                    <Calendar className="h-4 w-4 mr-2 text-gray-400" />
                     Member Since
                   </Label>
-                  <div className="p-3 bg-[var(--ui-input-bg)] border border-[var(--ui-card-border)] rounded-lg">
-                    <p className="text-[var(--fg-primary)] font-medium">
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                    <p className="text-gray-900 font-medium">
                       {new Date(user.created_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -251,38 +257,42 @@ export default function StudentProfile() {
               </div>
 
               {/* Note about editing */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <p className="text-blue-700 text-sm">
-                  <strong>Need to update your information?</strong> Contact your administrator to make changes to your name, email, or phone number.
+              <div className="bg-blue-50 border-l-4 border-[#4A73D1] p-4 rounded-r-lg shadow-sm">
+                <p className="text-[#4A73D1] text-sm">
+                  <strong>Need to update your information?</strong> Contact our support team at <a href="mailto:support@bilvens.com" className="underline hover:text-[#3B5BB8]">support@bilvens.com</a> to modify your name, email, or phone number.
                 </p>
               </div>
             </CardContent>
           </Card>
 
           {/* Security Settings Card */}
-          <Card className="bg-white border-[var(--ui-card-border)] shadow-sm">
+          <Card className="bg-white border-gray-100 shadow-md rounded-xl">
             <CardHeader>
-              <CardTitle className="text-xl font-bold text-[var(--fg-primary)] flex items-center">
-                <Shield className="h-5 w-5 mr-2" />
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
+                <Shield className="h-5 w-5 mr-2 text-[#4A73D1]" />
                 Security Settings
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-[var(--ui-card-border)] rounded-lg">
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg shadow-sm">
                   <div>
-                    <p className="font-medium text-[var(--fg-primary)]">Password</p>
-                    <p className="text-sm text-[var(--text-secondary)]">
-                      Change your account password for better security
+                    <p className="font-medium text-gray-900">Password</p>
+                    <p className="text-sm text-gray-600">
+                      Update your password to keep your account secure
                     </p>
                   </div>
                   <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="border-[var(--ui-card-border)]">
+                      <Button 
+                        variant="outline" 
+                        className="border-gray-200 hover:bg-gray-50 text-gray-900 rounded-lg"
+                        aria-label="Change Password"
+                      >
                         Change Password
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="sm:max-w-md">
                       <form onSubmit={handlePasswordChange}>
                         <DialogHeader>
                           <DialogTitle>Change Password</DialogTitle>
@@ -291,22 +301,26 @@ export default function StudentProfile() {
                           </DialogDescription>
                         </DialogHeader>
                         
-                        <div className="space-y-4 py-4">
+                        <div className="space-y-4 py-6">
                           {passwordError && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-lg">
+                            <div className="bg-red-50 border border-red-100 text-[#DB1B28] text-sm p-3 rounded-lg flex items-center">
+                              <AlertTriangle className="h-4 w-4 mr-2" />
                               {passwordError}
                             </div>
                           )}
                           
                           {passwordSuccess && (
-                            <div className="bg-green-50 border border-green-200 text-green-700 text-sm p-3 rounded-lg">
+                            <div className="bg-green-50 border border-green-100 text-green-700 text-sm p-3 rounded-lg flex items-center">
+                              <CheckCircle className="h-4 w-4 mr-2" />
                               {passwordSuccess}
                             </div>
                           )}
                           
                           {/* Current Password */}
                           <div className="space-y-2">
-                            <Label htmlFor="current-password">Current Password</Label>
+                            <Label htmlFor="current-password" className="text-sm font-medium text-gray-600">
+                              Current Password
+                            </Label>
                             <div className="relative">
                               <Input
                                 id="current-password"
@@ -314,13 +328,15 @@ export default function StudentProfile() {
                                 value={passwordForm.currentPassword}
                                 onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
                                 placeholder="Enter current password"
-                                className="pr-10"
+                                className="pr-10 h-12 bg-white border-gray-200 focus:border-[#4A73D1] focus:ring-0 rounded-lg text-sm"
                                 required
+                                disabled={passwordLoading}
                               />
                               <button
                                 type="button"
                                 onClick={() => togglePasswordVisibility('current')}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--fg-primary)]"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#4A73D1] transition-colors"
+                                disabled={passwordLoading}
                               >
                                 {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               </button>
@@ -329,7 +345,9 @@ export default function StudentProfile() {
                           
                           {/* New Password */}
                           <div className="space-y-2">
-                            <Label htmlFor="new-password">New Password</Label>
+                            <Label htmlFor="new-password" className="text-sm font-medium text-gray-600">
+                              New Password
+                            </Label>
                             <div className="relative">
                               <Input
                                 id="new-password"
@@ -337,26 +355,30 @@ export default function StudentProfile() {
                                 value={passwordForm.newPassword}
                                 onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
                                 placeholder="Enter new password"
-                                className="pr-10"
+                                className="pr-10 h-12 bg-white border-gray-200 focus:border-[#4A73D1] focus:ring-0 rounded-lg text-sm"
                                 minLength={6}
                                 required
+                                disabled={passwordLoading}
                               />
                               <button
                                 type="button"
                                 onClick={() => togglePasswordVisibility('new')}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--fg-primary)]"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#4A73D1] transition-colors"
+                                disabled={passwordLoading}
                               >
                                 {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               </button>
                             </div>
-                            <p className="text-xs text-[var(--text-secondary)]">
-                              Must be at least 6 characters long
+                            <p className="text-xs text-gray-500">
+                              Minimum 6 characters
                             </p>
                           </div>
                           
                           {/* Confirm Password */}
                           <div className="space-y-2">
-                            <Label htmlFor="confirm-password">Confirm New Password</Label>
+                            <Label htmlFor="confirm-password" className="text-sm font-medium text-gray-600">
+                              Confirm New Password
+                            </Label>
                             <div className="relative">
                               <Input
                                 id="confirm-password"
@@ -364,13 +386,15 @@ export default function StudentProfile() {
                                 value={passwordForm.confirmPassword}
                                 onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
                                 placeholder="Confirm new password"
-                                className="pr-10"
+                                className="pr-10 h-12 bg-white border-gray-200 focus:border-[#4A73D1] focus:ring-0 rounded-lg text-sm"
                                 required
+                                disabled={passwordLoading}
                               />
                               <button
                                 type="button"
                                 onClick={() => togglePasswordVisibility('confirm')}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--fg-primary)]"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#4A73D1] transition-colors"
+                                disabled={passwordLoading}
                               >
                                 {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               </button>
@@ -378,18 +402,19 @@ export default function StudentProfile() {
                           </div>
                         </div>
 
-                        <DialogFooter>
+                        <DialogFooter className="sm:justify-end gap-2">
                           <Button 
                             type="button" 
                             variant="outline" 
                             onClick={() => setShowPasswordDialog(false)}
                             disabled={passwordLoading}
+                            className="border-gray-200 hover:bg-gray-50 rounded-lg"
                           >
                             Cancel
                           </Button>
                           <Button 
                             type="submit" 
-                            className="btn-primary"
+                            className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] rounded-lg"
                             disabled={passwordLoading}
                           >
                             {passwordLoading ? (

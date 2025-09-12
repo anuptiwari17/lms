@@ -1,4 +1,4 @@
-// lib/auth.ts - Updated Authentication Utilities with Phone Support
+// lib/auth.ts - Fixed Authentication Utilities
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
@@ -43,7 +43,6 @@ export const tokenUtils = {
     try {
       return jwt.verify(token, JWT_SECRET) as AuthUser
     } catch (error) {
-      console.log("Token verification error:", error)
       return null
     }
   }
@@ -68,7 +67,6 @@ export const cookieUtils = {
       const token = cookieStore.get(TOKEN_NAME)
       return token?.value || null
     } catch (error) {
-      console.log("Cookie get error:", error)
       return null
     }
   },
@@ -92,10 +90,10 @@ export const auth = {
     try {
       console.log('Auth.login called with email:', email)
       
-      // Get user from database (include phone in selection)
+      // Get user from database
       const { data: users, error } = await supabase
         .from('users')
-        .select('id, email, name, phone, role, password_hash, created_at, updated_at')
+        .select('*')
         .eq('email', email.toLowerCase().trim())
         .limit(1)
 
@@ -112,13 +110,7 @@ export const auth = {
       }
 
       const user = users[0] as User
-      console.log('User found:', { 
-        id: user.id, 
-        email: user.email, 
-        phone: user.phone,
-        role: user.role, 
-        hasHash: !!user.password_hash 
-      })
+      console.log('User found:', { id: user.id, email: user.email, role: user.role, hasHash: !!user.password_hash })
 
       if (!user.password_hash) {
         console.log('User has no password hash')
@@ -134,12 +126,11 @@ export const auth = {
         return { user: null, error: 'Invalid email or password' }
       }
 
-      // Create auth user object (without password hash, include phone)
+      // Create auth user object (without password hash)
       const authUser: AuthUser = {
         id: user.id,
         email: user.email,
         name: user.name,
-        phone: user.phone, 
         role: user.role,
         created_at: user.created_at
       }
@@ -161,10 +152,10 @@ export const auth = {
       const user = tokenUtils.verify(token)
       if (!user) return null
 
-      // Verify user still exists in database (include phone)
+      // Verify user still exists in database
       const { data: users, error } = await supabase
         .from('users')
-        .select('id, email, name, phone, role, created_at')
+        .select('id, email, name, role')
         .eq('id', user.id)
         .limit(1)
 
@@ -179,18 +170,17 @@ export const auth = {
     }
   },
 
-  // Create new user (admin only) - Updated with phone support
+  // Create new user (admin only)
   async createUser(userData: {
     email: string
     name: string
-    phone?: string | null
     role: 'admin' | 'student'
     password?: string
   }): Promise<{ user: User | null, tempPassword?: string, error: string | null }> {
     try {
-      const { email, name, phone, role, password } = userData
+      const { email, name, role, password } = userData
       
-      // Check if user already exists by email
+      // Check if user already exists
       const { data: existingUsers } = await supabase
         .from('users')
         .select('id')
@@ -201,34 +191,20 @@ export const auth = {
         return { user: null, error: 'User with this email already exists' }
       }
 
-      // Check if phone already exists (if provided)
-      if (phone && phone.trim()) {
-        const { data: existingPhoneUsers } = await supabase
-          .from('users')
-          .select('id')
-          .eq('phone', phone.trim())
-          .limit(1)
-
-        if (existingPhoneUsers && existingPhoneUsers.length > 0) {
-          return { user: null, error: 'User with this phone number already exists' }
-        }
-      }
-
       // Generate password if not provided
       const userPassword = password || passwordUtils.generate()
       const hashedPassword = await passwordUtils.hash(userPassword)
 
-      // Insert user with phone support
+      // Insert user
       const { data: newUser, error } = await supabase
         .from('users')
         .insert({
           email: email.toLowerCase(),
           password_hash: hashedPassword,
           name,
-          phone: phone && phone.trim() ? phone.trim() : null, // NEW: Include phone
           role
         })
-        .select('id, email, name, phone, role, created_at, updated_at')
+        .select()
         .single()
 
       if (error) throw error

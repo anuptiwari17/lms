@@ -1,9 +1,9 @@
-// app/student/page.tsx - Student Dashboard Main Page
 "use client"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -17,7 +17,8 @@ import {
   TrendingUp,
   Play,
   CheckCircle,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from "lucide-react"
 import type { AuthUser, StudentDashboardStats, CourseWithModules, Enrollment } from "@/types/database"
 
@@ -105,10 +106,26 @@ export default function StudentDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[var(--text-secondary)]">Loading your courses...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="relative w-20 h-20 mx-auto">
+            <div className="w-20 h-20 border-4 border-gray-200 rounded-full animate-spin"></div>
+            <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-[#4A73D1] border-r-[#DB1B28] rounded-full animate-spin"></div>
+            <div className="absolute top-0 left-0 w-20 h-20 flex items-center justify-center">
+              <Sparkles className="h-8 w-8 text-[#4A73D1]" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-gray-900">Loading Your Dashboard</h3>
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-gray-600">Preparing your courses</span>
+              <div className="flex space-x-1">
+                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse"></div>
+                <div className="w-1.5 h-1.5 bg-[#DB1B28] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -116,48 +133,57 @@ export default function StudentDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={loadDashboardData} className="btn-primary">
-            Try Again
-          </Button>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto shadow-md">
+            <div className="w-10 h-10 border-4 border-[#DB1B28] rounded-full flex items-center justify-center animate-pulse">
+              <div className="w-4 h-4 bg-[#DB1B28] rounded-full"></div>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Something went wrong</h3>
+            <p className="text-[#DB1B28] mb-6 text-lg">{error}</p>
+            <Button 
+              onClick={loadDashboardData} 
+              className="bg-[#4A73D1] text-white px-6 py-3 rounded-lg hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200"
+            >
+              Try Again
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
+    <div className="min-h-screen bg-gray-50 font-sans">
       {/* Header */}
-      <header className="bg-white border-b border-[var(--ui-card-border)] shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <header className="bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <Link href="/student" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[var(--brand-primary)] rounded-xl flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <span className="text-xl font-bold text-[var(--fg-primary)]">LearnHub</span>
-                <div className="text-xs text-[var(--text-secondary)] font-medium">
-                  Student Portal
-                </div>
-              </div>
+              <Image
+                src="/images/bilvens-logo+name.webp"
+                alt="Bilvens Logo"
+                width={180}
+                height={50}
+                className="object-contain"
+              />
+              <Badge className="bg-blue-100 text-[#4A73D1] text-xs font-medium">Student Portal</Badge>
             </Link>
 
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3 px-4 py-2 bg-[var(--ui-input-bg)] rounded-xl">
-                <Link href="/student/profile" className="flex items-center space-x-3 px-4 py-2 bg-[var(--ui-input-bg)] rounded-xl hover:bg-gray-100 transition">
-  <User className="h-4 w-4 text-[var(--text-secondary)]" />
-  <span className="text-sm font-medium text-[var(--fg-primary)]">{user?.name}</span>
-</Link>
-
-              </div>
+              <Link href="/student/profile">
+                <div className="flex items-center space-x-3 px-4 py-2 bg-gray-100 rounded-xl hover:bg-[#4A73D1] hover:text-white transition-all duration-200 cursor-pointer group">
+                  <User className="h-5 w-5 text-[#4A73D1] group-hover:text-white" />
+                  <span className="text-sm font-semibold text-gray-900 group-hover:text-white">{user?.name}</span>
+                </div>
+              </Link>
               <Button 
                 onClick={handleLogout}
-                variant="ghost" 
-                size="sm" 
-                className="text-[var(--text-secondary)] hover:text-red-600 hover:bg-red-50"
+                variant="outline" 
+                className="border-[#DB1B28] text-[#DB1B28] hover:bg-[#DB1B28] hover:text-white transition-all duration-200 rounded-lg"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
@@ -168,101 +194,65 @@ export default function StudentDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[var(--fg-primary)] mb-2">
+        <div className="mb-10">
+          <h1 className="text-4xl font-extrabold text-gray-900 mb-3">
             Welcome back, {user?.name}
           </h1>
-          <p className="text-[var(--text-secondary)] text-lg">
-            Continue your learning journey and track your progress.
+          <p className="text-lg text-gray-600 leading-relaxed">
+            Continue your learning journey and track your progress with ease.
           </p>
         </div>
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-white border-[var(--ui-card-border)] shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Enrolled Courses</p>
-                    <p className="text-2xl font-bold text-[var(--fg-primary)]">{stats.enrolledCourses}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            {[
+              { title: "Enrolled Courses", value: stats.enrolledCourses, icon: BookOpen, bg: "bg-blue-50", color: "text-[#4A73D1]" },
+              { title: "Completed Courses", value: stats.completedCourses, icon: Award, bg: "bg-red-50", color: "text-[#DB1B28]" },
+              { title: "Modules Completed", value: `${stats.completedModules}/${stats.totalModules}`, icon: CheckCircle, bg: "bg-green-50", color: "text-green-600" },
+              { title: "Overall Progress", value: `${stats.averageProgress}%`, icon: TrendingUp, bg: "bg-yellow-50", color: "text-yellow-600" },
+            ].map((stat, index) => (
+              <Card 
+                key={index} 
+                className="bg-white border-gray-100 shadow-md hover:shadow-lg transition-all duration-200 rounded-xl overflow-hidden"
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-2">{stat.title}</p>
+                      <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                    </div>
+                    <div className={`p-3 ${stat.bg} rounded-xl shadow-sm`}>
+                      <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                    </div>
                   </div>
-                  <div className="p-3 bg-[var(--ui-input-bg)] rounded-xl">
-                    <BookOpen className="h-6 w-6 text-[var(--brand-primary)]" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-[var(--ui-card-border)] shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Completed Courses</p>
-                    <p className="text-2xl font-bold text-[var(--fg-primary)]">{stats.completedCourses}</p>
-                  </div>
-                  <div className="p-3 bg-[var(--ui-input-bg)] rounded-xl">
-                    <Award className="h-6 w-6 text-[var(--brand-primary)]" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-[var(--ui-card-border)] shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Modules Completed</p>
-                    <p className="text-2xl font-bold text-[var(--fg-primary)]">{stats.completedModules}</p>
-                    <p className="text-xs text-[var(--text-secondary)]">of {stats.totalModules} total</p>
-                  </div>
-                  <div className="p-3 bg-[var(--ui-input-bg)] rounded-xl">
-                    <CheckCircle className="h-6 w-6 text-[var(--brand-primary)]" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-[var(--ui-card-border)] shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Overall Progress</p>
-                    <p className="text-2xl font-bold text-[var(--fg-primary)]">{stats.averageProgress}%</p>
-                  </div>
-                  <div className="p-3 bg-[var(--ui-input-bg)] rounded-xl">
-                    <TrendingUp className="h-6 w-6 text-[var(--brand-primary)]" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
 
         {/* Courses Section */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-[var(--fg-primary)]">My Courses</h2>
-              <p className="text-[var(--text-secondary)]">Continue learning where you left off</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">My Courses</h2>
+              <p className="text-lg text-gray-600 leading-relaxed">Pick up where you left off</p>
             </div>
           </div>
 
-          {/* Courses Grid */}
           {courses.length === 0 ? (
-            <Card className="bg-white border-[var(--ui-card-border)] shadow-sm">
+            <Card className="bg-white border-gray-100 shadow-md rounded-xl">
               <CardContent className="p-12 text-center">
-                <BookOpen className="h-12 w-12 text-[var(--text-secondary)] mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-[var(--fg-primary)] mb-2">
-                  No courses assigned yet
-                </h3>
-                <p className="text-[var(--text-secondary)] mb-6">
+                <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">No courses assigned yet</h3>
+                <p className="text-gray-600 mb-6 text-lg leading-relaxed">
                   You haven&apos;t been enrolled in any courses yet. Contact your administrator to get started.
                 </p>
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 max-w-md mx-auto">
-                  <p className="text-blue-700 text-sm">
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 max-w-md mx-auto">
+                  <p className="text-[#4A73D1] text-sm font-medium">
                     <strong>Need help?</strong> Reach out to your course administrator to get enrolled in courses.
                   </p>
                 </div>
@@ -272,19 +262,19 @@ export default function StudentDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {courses.map((course) => (
                 <Link key={course.id} href={`/student/courses/${course.id}`}>
-                  <Card className="bg-white border-[var(--ui-card-border)] shadow-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer group h-full">
+                  <Card className="bg-white border-gray-100 shadow-md hover:shadow-xl transition-all duration-300 rounded-xl cursor-pointer group h-full">
                     <CardHeader className="pb-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="p-2 bg-[var(--ui-input-bg)] rounded-lg group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
-                          <BookOpen className="h-5 w-5" />
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="p-3 bg-blue-50 rounded-lg group-hover:bg-[#4A73D1] transition-all duration-200">
+                          <BookOpen className="h-6 w-6 text-[#4A73D1] group-hover:text-white transition-all" />
                         </div>
-                        <ArrowRight className="h-4 w-4 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
+                        <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-[#DB1B28] transition-all" />
                       </div>
-                      <CardTitle className="text-lg font-bold text-[var(--fg-primary)] group-hover:text-[var(--brand-primary)] transition-colors line-clamp-2">
+                      <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-[#4A73D1] transition-colors line-clamp-2">
                         {course.title}
                       </CardTitle>
                       {course.description && (
-                        <CardDescription className="text-[var(--text-secondary)] text-sm leading-relaxed line-clamp-3">
+                        <CardDescription className="text-gray-600 text-base leading-relaxed line-clamp-3">
                           {course.description}
                         </CardDescription>
                       )}
@@ -292,50 +282,46 @@ export default function StudentDashboard() {
                     
                     <CardContent className="pt-0">
                       <div className="space-y-4">
-                        {/* Progress */}
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium text-[var(--text-secondary)]">
+                            <span className="text-sm font-medium text-gray-600">
                               Progress: {course.enrollment.progress_percentage}%
                             </span>
                             {course.enrollment.completed_at && (
-                              <Badge className="bg-green-100 text-green-800 text-xs">
+                              <Badge className="bg-green-100 text-green-800 text-xs font-medium">
                                 Completed
                               </Badge>
                             )}
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="w-full bg-gray-100 rounded-full h-2.5 border border-gray-200 group-hover:border-[#4A73D1] transition-all duration-300">
                             <div 
-                              className="bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-secondary)] h-2 rounded-full transition-all duration-300"
+                              className={`h-2.5 rounded-full transition-all duration-300 group-hover:scale-x-[1.02] ${course.enrollment.progress_percentage > 0 ? 'bg-gradient-to-r from-[#4A73D1] to-[#DB1B28]' : 'bg-transparent'}`}
                               style={{ width: `${Math.min(course.enrollment.progress_percentage, 100)}%` }}
                             />
                           </div>
                         </div>
 
-                        {/* Course Stats */}
                         <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center text-[var(--text-secondary)]">
-                            <Play className="h-4 w-4 mr-1" />
+                          <div className="flex items-center text-gray-600">
+                            <Play className="h-4 w-4 mr-1 text-[#4A73D1]" />
                             <span>{course.modules?.length || 0} modules</span>
                           </div>
-                          <div className="flex items-center text-xs text-[var(--text-secondary)]">
-                            <Clock className="h-3 w-3 mr-1" />
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Clock className="h-4 w-4 mr-1" />
                             <span>Enrolled {new Date(course.enrollment.enrolled_at).toLocaleDateString()}</span>
                           </div>
                         </div>
 
-                        {/* Continue Learning Button */}
-                        <div className="pt-2 border-t border-[var(--ui-card-border)]">
+                        <div className="pt-3 border-t border-gray-100">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-[var(--text-secondary)]">
+                            <span className="text-xs text-gray-600">
                               {course.enrollment.progress_percentage === 100 
                                 ? 'Course completed!'
                                 : 'Continue learning'
                               }
                             </span>
                             <Badge 
-                              variant="secondary" 
-                              className="bg-[var(--ui-input-bg)] text-[var(--brand-primary)] text-xs"
+                              className={`text-xs font-medium ${course.enrollment.progress_percentage === 100 ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-[#4A73D1]'}`}
                             >
                               {course.enrollment.progress_percentage === 100 ? (
                                 <><Award className="h-3 w-3 mr-1" />Complete</>

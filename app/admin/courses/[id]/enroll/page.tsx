@@ -1,15 +1,14 @@
-// app/admin/courses/[id]/enroll/page.tsx - Student Enrollment Interface
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams} from "next/navigation"
+import { useParams } from "next/navigation"
 // import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-//import { Badge } from "@/components/ui/badge"
+// import { Badge } from "@/components/ui/badge"
 import { 
   ArrowLeft, 
   Users, 
@@ -17,7 +16,9 @@ import {
   UserCheck, 
   UserPlus,
   Mail,
-  Calendar
+  Calendar,
+  Sparkles,
+  ArrowRight
 } from "lucide-react"
 import type { User, Course } from "@/types/database"
 
@@ -27,7 +28,6 @@ interface StudentWithEnrollment extends User {
 }
 
 export default function StudentEnrollmentPage() {
-  // Use useParams instead of params prop for Next.js 15 compatibility
   const params = useParams()
   const courseId = params.id as string
 
@@ -51,7 +51,6 @@ export default function StudentEnrollmentPage() {
     try {
       setLoading(true)
       
-      // Get course details
       const courseRes = await fetch(`/api/courses/${courseId}`, {
         credentials: 'include'
       })
@@ -63,7 +62,6 @@ export default function StudentEnrollmentPage() {
       
       setCourse(courseData.data)
 
-      // Get all students and their enrollment status for this course
       const studentsRes = await fetch(`/api/admin/students/enrollment-status/${courseId}`, {
         credentials: 'include'
       })
@@ -95,7 +93,6 @@ export default function StudentEnrollmentPage() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      // Select all unenrolled students that match search
       const unenrolledStudents = filteredStudents.filter(s => !s.enrolled)
       setSelectedStudents(new Set(unenrolledStudents.map(s => s.id)))
     } else {
@@ -139,8 +136,8 @@ export default function StudentEnrollmentPage() {
 
       if (successCount > 0) {
         setMessage(`Successfully enrolled ${successCount} student(s)`)
-        await loadData() // Refresh data
-        setSelectedStudents(new Set()) // Clear selection
+        await loadData()
+        setSelectedStudents(new Set())
       }
 
       if (errorCount > 0) {
@@ -193,10 +190,26 @@ export default function StudentEnrollmentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[var(--text-secondary)]">Loading enrollment data...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="relative w-20 h-20 mx-auto">
+            <div className="w-20 h-20 border-4 border-gray-200 rounded-full animate-spin"></div>
+            <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-[#4A73D1] border-r-[#DB1B28] rounded-full animate-spin"></div>
+            <div className="absolute top-0 left-0 w-20 h-20 flex items-center justify-center">
+              <Sparkles className="h-8 w-8 text-[#4A73D1]" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-gray-900">Loading Enrollment Data</h3>
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-gray-600">Preparing your content</span>
+              <div className="flex space-x-1">
+                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse"></div>
+                <div className="w-1.5 h-1.5 bg-[#DB1B28] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -204,34 +217,48 @@ export default function StudentEnrollmentPage() {
 
   if (error && !course) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Link href="/admin">
-            <Button className="btn-primary">Back to Dashboard</Button>
-          </Link>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto shadow-md">
+            <div className="w-10 h-10 border-4 border-[#DB1B28] rounded-full flex items-center justify-center animate-pulse">
+              <div className="w-4 h-4 bg-[#DB1B28] rounded-full"></div>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Something went wrong</h3>
+            <p className="text-[#DB1B28] mb-6 text-lg">{error}</p>
+            <Link href="/admin">
+              <Button className="bg-[#4A73D1] text-white px-6 py-3 rounded-lg hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200">
+                Back to Dashboard
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
+    <div className="min-h-screen bg-gray-50 font-sans">
       {/* Header */}
-      <header className="bg-white border-b border-[var(--ui-card-border)] shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <header className="bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link href={`/admin/courses/${courseId}`}>
-                <Button variant="ghost" size="sm" className="text-[var(--text-secondary)] hover:text-[var(--brand-primary)]">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                <Button 
+                  variant="ghost" 
+                  className="text-gray-600 hover:text-[#4A73D1] hover:bg-blue-50 transition-all duration-200 rounded-lg"
+                >
+                  <ArrowLeft className="h-5 w-5 mr-2" />
                   Back to Course
                 </Button>
               </Link>
-              <div className="h-6 w-px bg-[var(--ui-card-border)]"></div>
+              <div className="h-6 w-px bg-gray-200"></div>
               <div>
-                <h1 className="text-xl font-bold text-[var(--fg-primary)]">Enroll Students</h1>
-                <p className="text-sm text-[var(--text-secondary)]">{course?.title}</p>
+                <h1 className="text-2xl font-bold text-gray-900">Enroll Students</h1>
+                <p className="text-sm text-gray-600">{course?.title}</p>
               </div>
             </div>
           </div>
@@ -239,29 +266,29 @@ export default function StudentEnrollmentPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Messages */}
         {message && (
-          <div className="bg-green-50 border border-green-200 text-green-700 text-sm p-4 rounded-xl mb-6">
+          <div className="bg-green-50 border border-green-100 text-green-700 text-sm p-4 rounded-xl mb-6 shadow-sm">
             {message}
           </div>
         )}
         
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm p-4 rounded-xl mb-6">
+          <div className="bg-red-50 border border-red-100 text-[#DB1B28] text-sm p-4 rounded-xl mb-6 shadow-sm">
             {error}
           </div>
         )}
 
         {/* Search and Actions */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--text-secondary)]" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search students..."
+              placeholder="Search students by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white border-[var(--ui-card-border)]"
+              className="bg-white border-gray-200 h-12 pl-10 rounded-lg focus:border-[#4A73D1] transition-all duration-200 shadow-sm"
             />
           </div>
 
@@ -269,7 +296,7 @@ export default function StudentEnrollmentPage() {
             <Button
               onClick={() => handleSelectAll(selectedStudents.size === 0)}
               variant="outline"
-              className="border-[var(--ui-card-border)]"
+              className="border-gray-300 text-[#4A73D1] hover:bg-blue-50 hover:text-[#3B5BB8] rounded-lg transition-all duration-200"
               disabled={unenrolledStudents.length === 0}
             >
               {selectedStudents.size === 0 ? 'Select All Available' : 'Clear Selection'}
@@ -278,7 +305,7 @@ export default function StudentEnrollmentPage() {
             <Button
               onClick={handleEnrollSelected}
               disabled={selectedStudents.size === 0 || processing}
-              className="btn-primary"
+              className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200 rounded-lg"
             >
               {processing ? (
                 <>
@@ -296,38 +323,38 @@ export default function StudentEnrollmentPage() {
         </div>
 
         {/* Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="bg-white border-[var(--ui-card-border)]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
             <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-[var(--brand-primary)]" />
+              <div className="flex items-center space-x-3">
+                <Users className="h-6 w-6 text-[#4A73D1]" />
                 <div>
-                  <p className="text-sm text-[var(--text-secondary)]">Total Students</p>
-                  <p className="text-xl font-bold text-[var(--fg-primary)]">{students.length}</p>
+                  <p className="text-sm font-medium text-gray-600">Total Students</p>
+                  <p className="text-xl font-bold text-gray-900">{students.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-[var(--ui-card-border)]">
+          <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
             <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <UserCheck className="h-5 w-5 text-green-600" />
+              <div className="flex items-center space-x-3">
+                <UserCheck className="h-6 w-6 text-green-600" />
                 <div>
-                  <p className="text-sm text-[var(--text-secondary)]">Enrolled</p>
-                  <p className="text-xl font-bold text-[var(--fg-primary)]">{enrolledStudents.length}</p>
+                  <p className="text-sm font-medium text-gray-600">Enrolled</p>
+                  <p className="text-xl font-bold text-gray-900">{enrolledStudents.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-[var(--ui-card-border)]">
+          <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
             <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <UserPlus className="h-5 w-5 text-blue-600" />
+              <div className="flex items-center space-x-3">
+                <UserPlus className="h-6 w-6 text-[#4A73D1]" />
                 <div>
-                  <p className="text-sm text-[var(--text-secondary)]">Available</p>
-                  <p className="text-xl font-bold text-[var(--fg-primary)]">{unenrolledStudents.length}</p>
+                  <p className="text-sm font-medium text-gray-600">Available</p>
+                  <p className="text-xl font-bold text-gray-900">{unenrolledStudents.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -337,30 +364,32 @@ export default function StudentEnrollmentPage() {
         {/* Students List */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Available Students */}
-          <Card className="bg-white border-[var(--ui-card-border)]">
+          <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <UserPlus className="h-5 w-5 text-blue-600" />
+              <CardTitle className="flex items-center space-x-2 text-lg">
+                <UserPlus className="h-5 w-5 text-[#4A73D1]" />
                 <span>Available Students ({unenrolledStudents.length})</span>
               </CardTitle>
+              <p className="text-sm text-gray-600">Select students to enroll in this course</p>
             </CardHeader>
             <CardContent className="p-0">
               {unenrolledStudents.length === 0 ? (
                 <div className="p-6 text-center">
-                  <p className="text-[var(--text-secondary)]">All students are enrolled in this course</p>
+                  <p className="text-gray-600 text-base">All students are enrolled in this course</p>
                 </div>
               ) : (
                 <div className="space-y-1">
                   {unenrolledStudents.map((student) => (
-                    <div key={student.id} className="flex items-center space-x-3 p-4 hover:bg-[var(--ui-input-bg)] transition-colors">
+                    <div key={student.id} className="flex items-center space-x-4 p-4 hover:bg-blue-50 transition-all duration-200 group">
                       <Checkbox
                         checked={selectedStudents.has(student.id)}
                         onCheckedChange={(checked) => handleStudentSelect(student.id, checked as boolean)}
+                        className="border-gray-300 data-[state=checked]:bg-[#4A73D1] data-[state=checked]:border-[#4A73D1] group-hover:scale-105 transition-all duration-200"
                       />
                       <div className="flex-1">
-                        <p className="font-medium text-[var(--fg-primary)]">{student.name}</p>
-                        <div className="flex items-center space-x-1 text-sm text-[var(--text-secondary)]">
-                          <Mail className="h-3 w-3" />
+                        <p className="font-medium text-gray-900 group-hover:text-[#4A73D1] transition-colors">{student.name}</p>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Mail className="h-4 w-4" />
                           <span>{student.email}</span>
                         </div>
                       </div>
@@ -372,32 +401,33 @@ export default function StudentEnrollmentPage() {
           </Card>
 
           {/* Enrolled Students */}
-          <Card className="bg-white border-[var(--ui-card-border)]">
+          <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 text-lg">
                 <UserCheck className="h-5 w-5 text-green-600" />
                 <span>Enrolled Students ({enrolledStudents.length})</span>
               </CardTitle>
+              <p className="text-sm text-gray-600">Manage currently enrolled students</p>
             </CardHeader>
             <CardContent className="p-0">
               {enrolledStudents.length === 0 ? (
                 <div className="p-6 text-center">
-                  <p className="text-[var(--text-secondary)]">No students enrolled yet</p>
+                  <p className="text-gray-600 text-base">No students enrolled yet</p>
                 </div>
               ) : (
                 <div className="space-y-1">
                   {enrolledStudents.map((student) => (
-                    <div key={student.id} className="flex items-center justify-between p-4 hover:bg-[var(--ui-input-bg)] transition-colors">
+                    <div key={student.id} className="flex items-center justify-between p-4 hover:bg-blue-50 transition-all duration-200 group">
                       <div>
-                        <p className="font-medium text-[var(--fg-primary)]">{student.name}</p>
-                        <div className="flex items-center space-x-4 text-sm text-[var(--text-secondary)]">
-                          <div className="flex items-center space-x-1">
-                            <Mail className="h-3 w-3" />
+                        <p className="font-medium text-gray-900 group-hover:text-[#4A73D1] transition-colors">{student.name}</p>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <div className="flex items-center space-x-2">
+                            <Mail className="h-4 w-4" />
                             <span>{student.email}</span>
                           </div>
                           {student.enrollment_date && (
-                            <div className="flex items-center space-x-1">
-                              <Calendar className="h-3 w-3" />
+                            <div className="flex items-center space-x-2">
+                              <Calendar className="h-4 w-4" />
                               <span>Enrolled {new Date(student.enrollment_date).toLocaleDateString()}</span>
                             </div>
                           )}
@@ -407,7 +437,7 @@ export default function StudentEnrollmentPage() {
                         onClick={() => handleUnenroll(student.id)}
                         variant="outline"
                         size="sm"
-                        className="border-red-200 text-red-600 hover:bg-red-50"
+                        className="border-red-200 text-[#DB1B28] hover:bg-red-50 hover:text-red-600 rounded-lg transition-all duration-200"
                       >
                         Unenroll
                       </Button>

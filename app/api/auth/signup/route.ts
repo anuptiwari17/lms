@@ -1,4 +1,4 @@
-// app/api/auth/signup/route.ts - Updated Signup API Route with Phone
+// app/api/auth/signup/route.ts - Signup API Route
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { passwordUtils, tokenUtils } from '@/lib/auth'
@@ -6,7 +6,7 @@ import type { ApiResponse, AuthUser, User } from '@/types/database'
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, phone, password } = await request.json()
+    const { name, email, password } = await request.json()
 
     console.log('Signup attempt for email:', email)
 
@@ -27,18 +27,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Validate phone format if provided
-    if (phone && phone.trim()) {
-      const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
-      const cleanPhone = phone.replace(/[\s\-\(\)]/g, '')
-      if (!phoneRegex.test(cleanPhone)) {
-        return NextResponse.json<ApiResponse>({
-          success: false,
-          error: 'Please enter a valid phone number'
-        }, { status: 400 })
-      }
-    }
-
     // Validate password length
     if (password.length < 6) {
       return NextResponse.json<ApiResponse>({
@@ -56,9 +44,8 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizedEmail = email.toLowerCase().trim()
-    const normalizedPhone = phone && phone.trim() ? phone.trim() : null
 
-    // Check if user already exists by email
+    // Check if user already exists
     const { data: existingUsers, error: checkError } = await supabase
       .from('users')
       .select('id')
@@ -80,30 +67,6 @@ export async function POST(request: NextRequest) {
       }, { status: 409 })
     }
 
-    // Check if phone number is already used (if provided)
-    if (normalizedPhone) {
-      const { data: existingPhoneUsers, error: phoneCheckError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('phone', normalizedPhone)
-        .limit(1)
-
-      if (phoneCheckError) {
-        console.error('Phone check error:', phoneCheckError)
-        return NextResponse.json<ApiResponse>({
-          success: false,
-          error: 'Database connection failed'
-        }, { status: 500 })
-      }
-
-      if (existingPhoneUsers && existingPhoneUsers.length > 0) {
-        return NextResponse.json<ApiResponse>({
-          success: false,
-          error: 'An account with this phone number already exists'
-        }, { status: 409 })
-      }
-    }
-
     // Hash password
     let hashedPassword: string
     try {
@@ -117,14 +80,13 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    // Create new user (default role is 'student') with phone
+    // Create new user (default role is 'student')
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
         email: normalizedEmail,
         password_hash: hashedPassword,
         name: name.trim(),
-        phone: normalizedPhone, // NEW: Include phone in insert
         role: 'student' // New signups default to student role
       })
       .select()
@@ -139,19 +101,13 @@ export async function POST(request: NextRequest) {
     }
 
     const user = newUser as User
-    console.log('User created successfully:', { 
-      id: user.id, 
-      email: user.email, 
-      phone: user.phone,
-      role: user.role 
-    })
+    console.log('User created successfully:', { id: user.id, email: user.email, role: user.role })
 
     // Create auth user object (without password hash)
     const authUser: AuthUser = {
       id: user.id,
       email: user.email,
       name: user.name,
-      phone: user.phone, // NEW: Include phone in auth response
       role: user.role,
       created_at: user.created_at
     }
@@ -197,4 +153,12 @@ export async function POST(request: NextRequest) {
       error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error')
     }, { status: 500 })
   }
+}
+
+// Optional: Add a GET method to check if signup is available
+export async function GET() {
+  return NextResponse.json({
+    success: true,
+    message: 'Signup endpoint is available'
+  })
 }
