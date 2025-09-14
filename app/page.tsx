@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -287,7 +288,7 @@ export default function ModernLandingPage() {
                 data-index={index}
                 initial={{ opacity: 0 }}
                 animate={visibleFeatures.has(index) ? { opacity: 1 } : {}}
-                transition={{ duration: 0.7, ease: "easeOut", delay: index * 0.05 }}
+                transition={{ duration: 0.5 }}
               >
                 <div className="flex-1 space-y-4">
                   <div className="w-10 h-10 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center">
@@ -408,6 +409,10 @@ export default function ModernLandingPage() {
     </div>
   )
 }
+
+
+
+
 
 
 
