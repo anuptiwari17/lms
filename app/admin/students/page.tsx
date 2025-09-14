@@ -24,6 +24,7 @@ import {
   Eye
 } from "lucide-react"
 import type { User, Enrollment } from "@/types/database"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 interface StudentWithStats extends User {
   enrolled_courses: number
@@ -141,12 +142,7 @@ export default function ModernAdminStudentsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-[#4A73D1] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading students...</p>
-        </div>
-      </div>
+      <LoadingSpinner message="Getting Student Details"/>
     )
   }
 
