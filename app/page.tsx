@@ -101,13 +101,12 @@ export default function ModernLandingPage() {
           color: transparent;
         }
 
-        .hover-scale {
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .hover-shadow {
+          transition: box-shadow 0.3s ease;
         }
 
-        .hover-scale:hover {
-          transform: translateY(-6px);
-          box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        .hover-shadow:hover {
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .navbar {
@@ -131,7 +130,7 @@ export default function ModernLandingPage() {
         transition={{ duration: 0.5 }}
         className="fixed top-0 left-0 right-0 z-50 navbar"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <Link href="/">
               <Image
@@ -142,11 +141,11 @@ export default function ModernLandingPage() {
                 className="object-contain"
               />
             </Link>
-            <div className="flex space-x-2">
+            <div className="flex space-x-3">
               <Link href="/login">
                 <Button
                   variant="ghost"
-                  className="text-slate-700 font-medium px-3 py-1.5 hover:bg-slate-100 rounded-md text-sm transition-all duration-200"
+                  className="text-slate-700 font-medium px-4 py-2 hover:bg-slate-100 rounded-md text-sm transition-all duration-200 hover-shadow"
                   aria-label="Sign In"
                 >
                   Sign In
@@ -154,7 +153,7 @@ export default function ModernLandingPage() {
               </Link>
               <Link href="/signup">
                 <Button
-                  className="bg-[#3B82F6] text-white font-medium px-3 py-1.5 rounded-md hover:bg-[#2563EB] transition-all duration-200 text-sm"
+                  className="bg-[#3B82F6] text-white font-medium px-4 py-2 rounded-md hover:bg-[#2563EB] transition-all duration-200 text-sm hover-shadow"
                   aria-label="Get Started"
                 >
                   Get Started
@@ -166,27 +165,27 @@ export default function ModernLandingPage() {
       </motion.nav>
 
       {/* Hero Section */}
-      <section ref={heroRef} className="hero-bg pt-36 pb-48 px-4 sm:px-6 lg:px-8 min-h-[90vh] flex items-center">
+      <section ref={heroRef} className="hero-bg pt-32 pb-24 px-4 sm:px-6 lg:px-8 min-h-[80vh] flex items-center">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              initial={{ opacity: 0 }}
+              animate={isHeroInView ? { opacity: 1 } : {}}
+              transition={{ duration: 0.6 }}
               className="space-y-6"
             >
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-5xl font-semibold text-slate-900 leading-tight">
                 Shape Your Future
                 <span className="block gradient-text mt-2">with Expert Learning</span>
               </h1>
-              <p className="text-lg text-slate-600 max-w-md font-light leading-relaxed">
+              <p className="text-base text-slate-600 max-w-md font-medium leading-relaxed">
                 Discover a modern learning platform designed to elevate your skills and propel your career forward with confidence.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/signup">
                   <Button
                     size="lg"
-                    className="bg-[#3B82F6] text-white px-6 py-3 text-base font-medium rounded-md hover:bg-[#2563EB] transition-all duration-200"
+                    className="bg-[#3B82F6] text-white px-6 py-3 text-base font-medium rounded-md hover:bg-[#2563EB] transition-all duration-200 hover-shadow"
                     aria-label="Start Learning"
                   >
                     <Rocket className="mr-2 h-4 w-4" />
@@ -194,34 +193,34 @@ export default function ModernLandingPage() {
                   </Button>
                 </Link>
                 <Link href="/contact">
-            <Button
-              size="lg"
-              className="bg-white text-[#3B82F6] px-6 py-3 text-base font-medium rounded-md hover:bg-slate-50 transition-all duration-200 hover-scale"
-              aria-label="Contact Us"
-            >
-              Contact Us
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-slate-200 text-[#3B82F6] px-6 py-3 text-base font-medium rounded-md hover:bg-slate-50 transition-all duration-200 hover-shadow"
+                    aria-label="Contact Us"
+                  >
+                    Contact Us
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
               </div>
               <div className="flex flex-wrap gap-3 pt-4">
-                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-slate-100 text-sm hover-scale">
+                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-slate-100 text-sm hover-shadow">
                   <CheckCircle className="w-4 h-4 text-[#3B82F6]" />
                   <span className="text-slate-700 font-medium">7-Day Free Trial</span>
                 </div>
-                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-slate-100 text-sm hover-scale">
+                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-slate-100 text-sm hover-shadow">
                   <Zap className="w-4 h-4 text-[#EF4444]" />
                   <span className="text-slate-700 font-medium">Career Support</span>
                 </div>
               </div>
             </motion.div>
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={isHeroInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="hover-scale"
+              initial={{ opacity: 0 }}
+              animate={isHeroInView ? { opacity: 1 } : {}}
+              transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div className="relative w-full h-80 lg:h-96 rounded-xl overflow-hidden bg-white p-4 shadow-sm border border-slate-100">
+              <div className="relative w-full h-64 lg:h-80 rounded-xl overflow-hidden bg-white p-4 shadow-sm border border-slate-100 hover-shadow">
                 <Image
                   src="/images/study.svg"
                   alt="Modern learning illustration"
@@ -237,25 +236,22 @@ export default function ModernLandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 bg-slate-50">
+      <section className="py-16 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="grid grid-cols-2 sm:grid-cols-4 gap-6"
+            className="grid grid-cols-2 md:grid-cols-4 gap-8"
           >
             {stats.map((stat, index) => (
-              <motion.div
+              <div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="text-center"
+                className="bg-white rounded-lg p-6 text-center border border-slate-100 shadow-sm hover-shadow"
               >
-                <div className="text-3xl font-bold gradient-text mb-2">{stat.number}</div>
+                <div className="text-2xl font-semibold text-[#3B82F6] mb-2">{stat.number}</div>
                 <div className="text-sm text-slate-600 font-medium">{stat.label}</div>
-              </motion.div>
+              </div>
             ))}
           </motion.div>
         </div>
@@ -265,43 +261,43 @@ export default function ModernLandingPage() {
       <section ref={featuresRef} className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isFeaturesInView ? { opacity: 1, y: 0 } : {}}
+            initial={{ opacity: 0 }}
+            animate={isFeaturesInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.5 }}
             className="text-center mb-12"
           >
             <Badge className="mb-4 px-3 py-1 bg-[#3B82F6]/10 text-[#3B82F6] rounded-full font-medium text-sm">
               Why Choose Us
             </Badge>
-            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-3">
+            <h2 className="text-3xl lg:text-4xl font-semibold text-slate-900 mb-3">
               Empowering Your Career Journey
             </h2>
-            <p className="text-base text-slate-600 max-w-lg mx-auto font-light">
+            <p className="text-base text-slate-600 max-w-lg mx-auto font-medium">
               A curated platform to help you learn, grow, and succeed.
             </p>
           </motion.div>
 
-          <div className="space-y-16">
+          <div className="space-y-12">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                className={`feature-card flex flex-col lg:flex-row items-center gap-8 ${
+                className={`feature-card flex flex-col lg:flex-row items-center gap-8 bg-white rounded-lg border border-slate-100 shadow-sm hover-shadow p-6 ${
                   index % 2 === 0 ? '' : 'lg:flex-row-reverse'
-                } transition-all duration-500`}
+                }`}
                 data-index={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={visibleFeatures.has(index) ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                initial={{ opacity: 0 }}
+                animate={visibleFeatures.has(index) ? { opacity: 1 } : {}}
+                transition={{ duration: 0.7, ease: "easeOut", delay: index * 0.05 }}
               >
                 <div className="flex-1 space-y-4">
                   <div className="w-10 h-10 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center">
                     {feature.icon}
                   </div>
-                  <h3 className="text-2xl font-semibold text-slate-900">{feature.title}</h3>
-                  <p className="text-base text-slate-600 font-light">{feature.description}</p>
+                  <h3 className="text-xl font-semibold text-slate-900">{feature.title}</h3>
+                  <p className="text-base text-slate-600 font-medium">{feature.description}</p>
                 </div>
-                <div className="flex-1 hover-scale">
-                  <div className="relative w-full h-56 rounded-lg overflow-hidden bg-white p-4 shadow-sm border border-slate-100">
+                <div className="flex-1">
+                  <div className="relative w-full h-48 rounded-lg overflow-hidden bg-white p-4 shadow-sm border border-slate-100 hover-shadow">
                     <Image
                       src={feature.imgSrc}
                       alt={feature.title}
@@ -320,22 +316,22 @@ export default function ModernLandingPage() {
       {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-[#3B82F6] to-[#EF4444]">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="max-w-5xl mx-auto text-center"
+          className="max-w-3xl mx-auto text-center"
         >
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl lg:text-4xl font-semibold text-white mb-4">
             Start Your Journey Today
           </h2>
-          <p className="text-base text-white/90 mb-8 max-w-md mx-auto font-light">
+          <p className="text-base text-white/90 mb-8 max-w-md mx-auto font-medium">
             Join thousands of professionals transforming their careers with us.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup">
               <Button
                 size="lg"
-                className="bg-white text-[#3B82F6] px-6 py-3 text-base font-medium rounded-md hover:bg-slate-50 transition-all duration-200"
+                className="bg-white text-[#3B82F6] px-6 py-3 text-base font-medium rounded-md hover:bg-slate-50 transition-all duration-200 hover-shadow"
                 aria-label="Join Now"
               >
                 Join Now
@@ -343,14 +339,14 @@ export default function ModernLandingPage() {
               </Button>
             </Link>
             <Link href="/learn-more">
-            <Button
-              size="lg"
-              variant="outline"
-              className="border border-white/80 text-black px-6 py-3 text-base font-medium rounded-md hover:bg-white/10 transition-all duration-200"
-              aria-label="Learn More"
-            >
-              Learn More
-            </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border border-white/80 text-black px-6 py-3 text-base font-medium rounded-md hover:bg-white/10 transition-all duration-200 hover-shadow"
+                aria-label="Learn More"
+              >
+                Learn More
+              </Button>
             </Link>
           </div>
         </motion.div>
@@ -359,7 +355,7 @@ export default function ModernLandingPage() {
       {/* Footer */}
       <footer className="py-12 px-4 sm:px-6 lg:px-8 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             <div className="flex flex-col items-center md:items-start">
               <Image
                 src="/images/bilvens-logo+name.webp"
@@ -368,37 +364,37 @@ export default function ModernLandingPage() {
                 height={30}
                 className="object-contain mb-4"
               />
-              <p className="text-slate-400 text-sm text-center md:text-left font-light">
+              <p className="text-slate-400 text-sm text-center md:text-left font-medium">
                 Empowering futures through innovative learning.
               </p>
             </div>
             <div className="flex flex-col items-center md:items-start">
-              <h3 className="text-base font-semibold mb-3">Explore</h3>
+              <h3 className="text-base font-semibold mb-3 text-white">Explore</h3>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/" className="text-slate-400 hover:text-white transition-all duration-200">Home</Link></li>
-                <li><Link href="/privacy" className="text-slate-400 hover:text-white transition-all duration-200">Privacy</Link></li>
-                <li><Link href="/terms" className="text-slate-400 hover:text-white transition-all duration-200">Terms</Link></li>
-                <li><Link href="/contact" className="text-slate-400 hover:text-white transition-all duration-200">Contact</Link></li>
+                <li><Link href="/" className="text-slate-400 hover:text-[#3B82F6] transition-all duration-200">Home</Link></li>
+                <li><Link href="/privacy" className="text-slate-400 hover:text-[#3B82F6] transition-all duration-200">Privacy</Link></li>
+                <li><Link href="/terms" className="text-slate-400 hover:text-[#3B82F6] transition-all duration-200">Terms</Link></li>
+                <li><Link href="/contact" className="text-slate-400 hover:text-[#3B82F6] transition-all duration-200">Contact</Link></li>
               </ul>
             </div>
             <div className="flex flex-col items-center md:items-start">
-              <h3 className="text-base font-semibold mb-3">Contact</h3>
+              <h3 className="text-base font-semibold mb-3 text-white">Contact</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="mailto:support@bilvens.com" className="text-slate-400 hover:text-white transition-all duration-200">support@bilvens.com</a></li>
+                <li><a href="mailto:support@bilvens.com" className="text-slate-400 hover:text-[#3B82F6] transition-all duration-200">support@bilvens.com</a></li>
                 <li className="text-slate-400">123 Innovation Drive</li>
                 <li className="text-slate-400">+1 (800) 123-4567</li>
               </ul>
             </div>
             <div className="flex flex-col items-center md:items-end">
-              <h3 className="text-base font-semibold mb-3">Connect</h3>
-              <div className="flex gap-2 mb-4">
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="p-1.5 bg-slate-800 rounded-md hover:bg-[#3B82F6] transition-all duration-200">
+              <h3 className="text-base font-semibold mb-3 text-white">Connect</h3>
+              <div className="flex gap-3 mb-4">
+                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="p-2 bg-slate-800 rounded-md hover:bg-[#3B82F6] transition-all duration-200">
                   <Twitter className="h-4 w-4" />
                 </a>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="p-1.5 bg-slate-800 rounded-md hover:bg-[#EF4444] transition-all duration-200">
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="p-2 bg-slate-800 rounded-md hover:bg-[#EF4444] transition-all duration-200">
                   <Instagram className="h-4 w-4" />
                 </a>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="p-1.5 bg-slate-800 rounded-md hover:bg-[#3B82F6] transition-all duration-200">
+                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="p-2 bg-slate-800 rounded-md hover:bg-[#3B82F6] transition-all duration-200">
                   <Linkedin className="h-4 w-4" />
                 </a>
               </div>
@@ -412,14 +408,6 @@ export default function ModernLandingPage() {
     </div>
   )
 }
-
-
-
-
-
-
-
-
 
 
 

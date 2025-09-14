@@ -22,11 +22,14 @@ import {
   Play, 
   Download,
   GripVertical,
-  ExternalLink,
-  Sparkles,
-  ArrowRight
+  ArrowRight,
+  Megaphone,
+  Save,
+  X,
+  AlertTriangle
 } from "lucide-react"
-import type { Course, Module, ApiResponse } from "@/types/database"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
+import type { Course, Module, ApiResponse, AnnouncementWithAuthor, Announcement } from "@/types/database"
 import { utils } from "@/lib/database"
 
 interface CourseWithModules extends Course {
@@ -43,9 +46,14 @@ interface StudentInCourse {
   updated_at: string
 }
 
-export default function CourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
+interface CourseDetailPageProps {
+  params: Promise<{ id: string }>
+}
+
+export default function CourseDetailPage({ params }: CourseDetailPageProps) {
   const [course, setCourse] = useState<CourseWithModules | null>(null)
   const [students, setStudents] = useState<StudentInCourse[]>([])
+  const [announcements, setAnnouncements] = useState<AnnouncementWithAuthor[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [activeTab, setActiveTab] = useState("overview")
@@ -54,38 +62,55 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
   // Module form state
   const [showModuleForm, setShowModuleForm] = useState(false)
   const [moduleForm, setModuleForm] = useState({
+    id: "",
     title: "",
     description: "",
     video_url: "",
     duration_minutes: 0
   })
   const [moduleLoading, setModuleLoading] = useState(false)
+  const [editingModule, setEditingModule] = useState<string | null>(null)
+
+  // Announcement state
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
+  const [announcementForm, setAnnouncementForm] = useState({ content: "" })
+  const [announcementLoading, setAnnouncementLoading] = useState(false)
+  const [editingAnnouncement, setEditingAnnouncement] = useState<string | null>(null)
+  const [editAnnouncementContent, setEditAnnouncementContent] = useState("")
+
+  // Course edit/delete state
+  const [showEditCourseDialog, setShowEditCourseDialog] = useState(false)
+  const [showDeleteCourseDialog, setShowDeleteCourseDialog] = useState(false)
+  const [courseLoading, setCourseLoading] = useState(false)
+  const [courseForm, setCourseForm] = useState({
+    title: "",
+    description: ""
+  })
   
   const router = useRouter()
 
-
   useEffect(() => {
-  const handleContextMenu = (event: MouseEvent) => {
-    event.preventDefault();
-  };
+    const handleContextMenu = (event: MouseEvent) => {
+      if ((event.target as HTMLElement).closest('iframe')) {
+        event.preventDefault()
+      }
+    }
+    document.addEventListener("contextmenu", handleContextMenu)
+    return () => document.removeEventListener("contextmenu", handleContextMenu)
+  }, [])
 
-  document.addEventListener("contextmenu", handleContextMenu);
-
-  return () => {
-    document.removeEventListener("contextmenu", handleContextMenu);
-  };
-}, []);
-
-
-
-  // Extract params on component mount
   useEffect(() => {
     const extractParams = async () => {
-      const resolvedParams = await params;
-      setCourseId(resolvedParams.id);
-    };
-    extractParams();
-  }, [params]);
+      const resolvedParams = await params
+      if (!resolvedParams.id) {
+        setError("Course ID is required")
+        setLoading(false)
+        return
+      }
+      setCourseId(resolvedParams.id)
+    }
+    extractParams()
+  }, [params])
 
   useEffect(() => {
     if (courseId) {
@@ -97,21 +122,30 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
     try {
       setLoading(true)
       
-      const [courseRes, studentsRes] = await Promise.all([
+      const [courseRes, studentsRes, announcementsRes] = await Promise.all([
         fetch(`/api/courses/${courseId}`),
-        fetch(`/api/courses/${courseId}/students`)
+        fetch(`/api/courses/${courseId}/students`),
+        fetch(`/api/courses/${courseId}/announcements`)
       ])
 
       const courseData = await courseRes.json()
       const studentsData = await studentsRes.json()
+      const announcementsData = await announcementsRes.json()
 
       if (!courseData.success) {
         throw new Error(courseData.error || 'Course not found')
       }
 
       setCourse(courseData.data)
+      setCourseForm({
+        title: courseData.data.title,
+        description: courseData.data.description || ""
+      })
       if (studentsData.success) {
         setStudents(studentsData.data || [])
+      }
+      if (announcementsData.success) {
+        setAnnouncements(announcementsData.data || [])
       }
 
     } catch (error) {
@@ -122,7 +156,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
     }
   }
 
-  const handleCreateModule = async (e: React.FormEvent) => {
+  const handleCreateOrUpdateModule = async (e: React.FormEvent) => {
     e.preventDefault()
     setModuleLoading(true)
 
@@ -131,8 +165,13 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
         throw new Error("Title and video URL are required")
       }
 
-      const response = await fetch(`/api/courses/${courseId}/modules`, {
-        method: 'POST',
+      const method = editingModule ? 'PUT' : 'POST'
+      const url = editingModule 
+        ? `/api/courses/${courseId}/modules/${editingModule}`
+        : `/api/courses/${courseId}/modules`
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: moduleForm.title.trim(),
@@ -145,93 +184,236 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
       const result: ApiResponse<Module> = await response.json()
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to create module')
+        throw new Error(result.error || editingModule ? 'Failed to update module' : 'Failed to create module')
       }
 
-      // Reload course data to show new module
       await loadCourseData()
       
-      // Reset form
       setModuleForm({
+        id: "",
         title: "",
         description: "",
         video_url: "",
         duration_minutes: 0
       })
+      setEditingModule(null)
       setShowModuleForm(false)
 
     } catch (error) {
-      console.error('Create module error:', error)
-      setError(error instanceof Error ? error.message : 'Failed to create module')
+      console.error('Module operation error:', error)
+      setError(error instanceof Error ? error.message : editingModule ? 'Failed to update module' : 'Failed to create module')
     } finally {
       setModuleLoading(false)
     }
   }
 
+  const handleDeleteModule = async (moduleId: string) => {
+    if (!confirm('Are you sure you want to delete this module?')) return
+    try {
+      const response = await fetch(`/api/courses/${courseId}/modules/${moduleId}`, {
+        method: 'DELETE'
+      })
+      const result: ApiResponse = await response.json()
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete module')
+      }
+      await loadCourseData()
+    } catch (error) {
+      console.error('Delete module error:', error)
+      setError(error instanceof Error ? error.message : 'Failed to delete module')
+    }
+  }
+
+  const startEditModule = (module: Module) => {
+    setEditingModule(module.id)
+    setModuleForm({
+      id: module.id,
+      title: module.title,
+      description: module.description || "",
+      video_url: module.video_url,
+      duration_minutes: module.duration_minutes
+    })
+    setShowModuleForm(true)
+  }
+
+  const handleCreateAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAnnouncementLoading(true)
+
+    try {
+      if (!announcementForm.content.trim()) {
+        throw new Error("Announcement content is required")
+      }
+
+      const response = await fetch(`/api/courses/${courseId}/announcements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: announcementForm.content.trim(),
+          course_id: courseId
+        })
+      })
+
+      const result: ApiResponse<Announcement> = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create announcement')
+      }
+
+      await loadCourseData()
+      
+      setAnnouncementForm({ content: "" })
+      setShowAnnouncementForm(false)
+
+    } catch (error) {
+      console.error('Create announcement error:', error)
+      setError(error instanceof Error ? error.message : 'Failed to create announcement')
+    } finally {
+      setAnnouncementLoading(false)
+    }
+  }
+
+  const handleEditAnnouncement = async (announcementId: string) => {
+    try {
+      if (!editAnnouncementContent.trim()) {
+        throw new Error("Announcement content is required")
+      }
+
+      const response = await fetch(`/api/announcements/${announcementId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: editAnnouncementContent.trim()
+        })
+      })
+
+      const result: ApiResponse<Announcement> = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update announcement')
+      }
+
+      await loadCourseData()
+      
+      setEditingAnnouncement(null)
+      setEditAnnouncementContent("")
+
+    } catch (error) {
+      console.error('Update announcement error:', error)
+      setError(error instanceof Error ? error.message : 'Failed to update announcement')
+    }
+  }
+
+  const handleDeleteAnnouncement = async (announcementId: string) => {
+    if (!confirm('Are you sure you want to delete this announcement?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/announcements/${announcementId}`, {
+        method: 'DELETE'
+      })
+
+      const result: ApiResponse = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete announcement')
+      }
+
+      await loadCourseData()
+
+    } catch (error) {
+      console.error('Delete announcement error:', error)
+      setError(error instanceof Error ? error.message : 'Failed to delete announcement')
+    }
+  }
+
+  const startEditAnnouncement = (announcement: AnnouncementWithAuthor) => {
+    setEditingAnnouncement(announcement.id)
+    setEditAnnouncementContent(announcement.content)
+  }
+
+  const cancelEditAnnouncement = () => {
+    setEditingAnnouncement(null)
+    setEditAnnouncementContent("")
+  }
+
+  const handleUpdateCourse = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCourseLoading(true)
+    try {
+      if (!courseForm.title.trim()) {
+        throw new Error("Course title is required")
+      }
+
+      const response = await fetch(`/api/courses/${courseId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: courseForm.title.trim(),
+          description: courseForm.description.trim()
+        })
+      })
+
+      const result: ApiResponse<Course> = await response.json()
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update course')
+      }
+
+      await loadCourseData()
+      setShowEditCourseDialog(false)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to update course')
+    } finally {
+      setCourseLoading(false)
+    }
+  }
+
+  const handleDeleteCourse = async () => {
+    setCourseLoading(true)
+    try {
+      const response = await fetch(`/api/courses/${courseId}`, {
+        method: 'DELETE'
+      })
+      const result: ApiResponse = await response.json()
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete course')
+      }
+      router.push('/admin')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to delete course')
+    } finally {
+      setCourseLoading(false)
+    }
+  }
+
   const handleDownloadCSV = () => {
     if (students.length === 0) return
-    
     const csvContent = utils.generateCSV(students, course?.title || 'Course')
     utils.downloadCSV(csvContent, `${course?.title || 'course'}-students.csv`)
   }
 
   const getYouTubeEmbedUrl = (url: string) => {
     const videoId = utils.extractYouTubeVideoId(url)
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+    return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1` : null
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
   }
 
   if (!courseId) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center space-y-6">
-          <div className="relative w-20 h-20 mx-auto">
-            <div className="w-20 h-20 border-4 border-gray-200 rounded-full animate-spin"></div>
-            <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-[#4A73D1] border-r-[#DB1B28] rounded-full animate-spin"></div>
-            <div className="absolute top-0 left-0 w-20 h-20 flex items-center justify-center">
-              <Sparkles className="h-8 w-8 text-[#4A73D1]" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-xl font-semibold text-gray-900">Loading Course</h3>
-            <div className="flex items-center justify-center space-x-2">
-              <span className="text-gray-600">Preparing your content</span>
-              <div className="flex space-x-1">
-                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse"></div>
-                <div className="w-1.5 h-1.5 bg-[#DB1B28] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    return <LoadingSpinner message="Loading course..." />
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center space-y-6">
-          <div className="relative w-20 h-20 mx-auto">
-            <div className="w-20 h-20 border-4 border-gray-200 rounded-full animate-spin"></div>
-            <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-[#4A73D1] border-r-[#DB1B28] rounded-full animate-spin"></div>
-            <div className="absolute top-0 left-0 w-20 h-20 flex items-center justify-center">
-              <Sparkles className="h-8 w-8 text-[#4A73D1]" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-xl font-semibold text-gray-900">Loading Course</h3>
-            <div className="flex items-center justify-center space-x-2">
-              <span className="text-gray-600">Preparing your content</span>
-              <div className="flex space-x-1">
-                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse"></div>
-                <div className="w-1.5 h-1.5 bg-[#DB1B28] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                <div className="w-1.5 h-1.5 bg-[#4A73D1] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    return <LoadingSpinner message="Loading course..." />
   }
 
   if (error || !course) {
@@ -283,6 +465,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
             
             <div className="flex items-center space-x-3">
               <Button 
+                onClick={() => setShowEditCourseDialog(true)}
                 variant="outline" 
                 className="border-gray-300 text-[#4A73D1] hover:bg-blue-50 hover:text-[#3B5BB8] rounded-lg transition-all duration-200"
               >
@@ -305,8 +488,14 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4 flex items-center">
+            <AlertTriangle className="h-5 w-5 mr-2" />
+            {error}
+          </div>
+        )}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-3 bg-white border border-gray-100 p-1 rounded-xl shadow-sm">
+          <TabsList className="grid w-full grid-cols-4 bg-white border border-gray-100 p-1 rounded-xl shadow-sm">
             <TabsTrigger 
               value="overview" 
               className="data-[state=active]:bg-[#4A73D1] data-[state=active]:text-white font-medium rounded-lg transition-all duration-200"
@@ -322,6 +511,13 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
               Modules ({course.modules?.length || 0})
             </TabsTrigger>
             <TabsTrigger 
+              value="announcements"
+              className="data-[state=active]:bg-[#4A73D1] data-[state=active]:text-white font-medium rounded-lg transition-all duration-200"
+            >
+              <Megaphone className="h-4 w-4 mr-2" />
+              Announcements ({announcements.length})
+            </TabsTrigger>
+            <TabsTrigger 
               value="students"
               className="data-[state=active]:bg-[#4A73D1] data-[state=active]:text-white font-medium rounded-lg transition-all duration-200"
             >
@@ -332,7 +528,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -341,6 +537,18 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                       <p className="text-2xl font-bold text-gray-900">{course.modules?.length || 0}</p>
                     </div>
                     <BookOpen className="h-8 w-8 text-[#4A73D1]" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Announcements</p>
+                      <p className="text-2xl font-bold text-gray-900">{announcements.length}</p>
+                    </div>
+                    <Megaphone className="h-8 w-8 text-[#4A73D1]" />
                   </div>
                 </CardContent>
               </Card>
@@ -375,7 +583,6 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
               </Card>
             </div>
 
-            {/* Course Info */}
             <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
               <CardHeader>
                 <CardTitle className="text-xl font-bold text-gray-900">Course Information</CardTitle>
@@ -408,7 +615,19 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                 <h3 className="text-2xl font-bold text-gray-900">Course Modules</h3>
                 <p className="text-gray-600 text-base leading-relaxed">Manage video modules for this course</p>
               </div>
-              <Dialog open={showModuleForm} onOpenChange={setShowModuleForm}>
+              <Dialog open={showModuleForm} onOpenChange={(open) => {
+                setShowModuleForm(open)
+                if (!open) {
+                  setModuleForm({
+                    id: "",
+                    title: "",
+                    description: "",
+                    video_url: "",
+                    duration_minutes: 0
+                  })
+                  setEditingModule(null)
+                }
+              }}>
                 <DialogTrigger asChild>
                   <Button className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200 rounded-lg">
                     <Plus className="h-4 w-4 mr-2" />
@@ -416,11 +635,11 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
-                  <form onSubmit={handleCreateModule}>
+                  <form onSubmit={handleCreateOrUpdateModule}>
                     <DialogHeader>
-                      <DialogTitle>Add New Module</DialogTitle>
+                      <DialogTitle>{editingModule ? 'Edit Module' : 'Add New Module'}</DialogTitle>
                       <DialogDescription>
-                        Create a new video module for this course
+                        {editingModule ? 'Update the module details' : 'Create a new video module for this course'}
                       </DialogDescription>
                     </DialogHeader>
                     
@@ -496,12 +715,12 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                         {moduleLoading ? (
                           <>
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                            Creating...
+                            {editingModule ? 'Updating...' : 'Creating...'}
                           </>
                         ) : (
                           <>
                             <Plus className="h-4 w-4 mr-2" />
-                            Add Module
+                            {editingModule ? 'Update Module' : 'Add Module'}
                           </>
                         )}
                       </Button>
@@ -511,13 +730,12 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
               </Dialog>
             </div>
 
-            {/* Modules List */}
             {course.modules && course.modules.length > 0 ? (
               <div className="space-y-4">
                 {course.modules
                   .sort((a, b) => a.order_index - b.order_index)
                   .map((module, index) => {
-                    const embedUrl = getYouTubeEmbedUrl(module.video_url)+"?rel=0&modestbranding=1"
+                    const embedUrl = getYouTubeEmbedUrl(module.video_url)
                     return (
                       <Card key={module.id} className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-xl transition-all duration-300 group">
                         <CardContent className="p-6">
@@ -540,33 +758,27 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                                     <Badge className="bg-blue-100 text-[#4A73D1] text-xs font-medium">
                                       {module.duration_minutes > 0 ? `${module.duration_minutes} min` : 'Duration not set'}
                                     </Badge>
-
-                                    {/* {embedUrl && (
-                                      <a 
-                                        href={module.video_url} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="text-xs text-[#4A73D1] hover:text-[#3B5BB8] flex items-center transition-colors duration-200"
-                                      >
-                                        <ExternalLink className="h-4 w-4 mr-1" />
-                                        View on YouTube
-                                      </a>
-                                    )} */}
-                                    
                                   </div>
                                 </div>
                                 
                                 <div className="flex items-center space-x-2">
-                                  <Button variant="ghost" className="text-gray-600 hover:text-[#4A73D1] hover:bg-blue-50 rounded-lg transition-all duration-200">
+                                  <Button 
+                                    variant="ghost" 
+                                    onClick={() => startEditModule(module)}
+                                    className="text-gray-600 hover:text-[#4A73D1] hover:bg-blue-50 rounded-lg transition-all duration-200"
+                                  >
                                     <Edit className="h-4 w-4" />
                                   </Button>
-                                  <Button variant="ghost" className="text-[#DB1B28] hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200">
+                                  <Button 
+                                    variant="ghost" 
+                                    onClick={() => handleDeleteModule(module.id)}
+                                    className="text-[#DB1B28] hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                                  >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </div>
                               </div>
                               
-                              {/* Video Preview */}
                               {embedUrl && (
                                 <div className="bg-gray-50 rounded-xl p-4 shadow-sm">
                                   <div className="aspect-video bg-black rounded-lg overflow-hidden">
@@ -578,7 +790,6 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                                       allowFullScreen
                                       referrerPolicy="strict-origin-when-cross-origin"
                                       loading="lazy"
-                                      
                                     />
                                   </div>
                                 </div>
@@ -601,6 +812,179 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                   <Button onClick={() => setShowModuleForm(true)} className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200 rounded-lg">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Your First Module
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Announcements Tab */}
+          <TabsContent value="announcements" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">Course Announcements</h3>
+                <p className="text-gray-600 text-base leading-relaxed">Share important updates with your students</p>
+              </div>
+              <Dialog open={showAnnouncementForm} onOpenChange={setShowAnnouncementForm}>
+                <DialogTrigger asChild>
+                  <Button className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200 rounded-lg">
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Announcement
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <form onSubmit={handleCreateAnnouncement}>
+                    <DialogHeader>
+                      <DialogTitle>Create New Announcement</DialogTitle>
+                      <DialogDescription>
+                        Share an important update or message with all students enrolled in this course
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-6 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="announcement-content" className="text-sm font-medium text-gray-600">Announcement Content *</Label>
+                        <Textarea
+                          id="announcement-content"
+                          value={announcementForm.content}
+                          onChange={(e) => setAnnouncementForm(prev => ({ ...prev, content: e.target.value }))}
+                          placeholder="Enter your announcement message here..."
+                          rows={8}
+                          className="bg-white border-gray-200 min-h-[200px] rounded-lg focus:border-[#4A73D1] transition-all duration-200 shadow-sm resize-none"
+                          required
+                        />
+                        <p className="text-xs text-gray-600">
+                          This message will be visible to all students enrolled in this course
+                        </p>
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setShowAnnouncementForm(false)}
+                        disabled={announcementLoading}
+                        className="border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-all duration-200"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={announcementLoading || !announcementForm.content.trim()}
+                        className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200 rounded-lg"
+                      >
+                        {announcementLoading ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                            Publishing...
+                          </>
+                        ) : (
+                          <>
+                            <Megaphone className="h-4 w-4 mr-2" />
+                            Publish Announcement
+                          </>
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {announcements.length > 0 ? (
+              <div className="space-y-4">
+                {announcements.map((announcement) => (
+                  <Card key={announcement.id} className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-xl transition-all duration-300 group">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-[#4A73D1] to-[#DB1B28] text-white rounded-full flex items-center justify-center group-hover:scale-105 transition-all duration-200">
+                            <Megaphone className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">
+                              By {announcement.author.name} • {formatDate(announcement.created_at)}
+                            </p>
+                            {announcement.updated_at !== announcement.created_at && (
+                              <p className="text-xs text-gray-500">
+                                Updated {formatDate(announcement.updated_at)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => startEditAnnouncement(announcement)}
+                            className="text-gray-600 hover:text-[#4A73D1] hover:bg-blue-50 rounded-lg transition-all duration-200"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteAnnouncement(announcement.id)}
+                            className="text-[#DB1B28] hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {editingAnnouncement === announcement.id ? (
+                        <div className="space-y-3">
+                          <Textarea
+                            value={editAnnouncementContent}
+                            onChange={(e) => setEditAnnouncementContent(e.target.value)}
+                            className="bg-white border-gray-200 min-h-[120px] rounded-lg focus:border-[#4A73D1] transition-all duration-200 shadow-sm resize-none"
+                            rows={6}
+                          />
+                          <div className="flex items-center space-x-2">
+                            <Button 
+                              size="sm"
+                              onClick={() => handleEditAnnouncement(announcement.id)}
+                              disabled={!editAnnouncementContent.trim()}
+                              className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] rounded-lg transition-all duration-200"
+                            >
+                              <Save className="h-4 w-4 mr-1" />
+                              Save
+                            </Button>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={cancelEditAnnouncement}
+                              className="border-gray-300 text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                            >
+                              <X className="h-4 w-4 mr-1" />
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-[#4A73D1]">
+                          <p className="text-gray-800 text-base leading-relaxed whitespace-pre-wrap">
+                            {announcement.content}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="bg-white border-gray-100 shadow-md rounded-xl">
+                <CardContent className="p-12 text-center">
+                  <Megaphone className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">No announcements yet</h3>
+                  <p className="text-gray-600 mb-6 text-base leading-relaxed">
+                    Keep your students informed by creating announcements about course updates, deadlines, or important information.
+                  </p>
+                  <Button onClick={() => setShowAnnouncementForm(true)} className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200 rounded-lg">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create First Announcement
                   </Button>
                 </CardContent>
               </Card>
@@ -677,6 +1061,146 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Edit Course Dialog */}
+        <Dialog open={showEditCourseDialog} onOpenChange={setShowEditCourseDialog}>
+          <DialogContent className="max-w-2xl">
+            <form onSubmit={handleUpdateCourse}>
+              <DialogHeader>
+                <DialogTitle>Edit Course</DialogTitle>
+                <DialogDescription>
+                  Update the course details below
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-6 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="course-title" className="text-sm font-medium text-gray-600">Course Title *</Label>
+                  <Input
+                    id="course-title"
+                    value={courseForm.title}
+                    onChange={(e) => setCourseForm(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Enter course title"
+                    className="bg-white border-gray-200 h-12 rounded-lg focus:border-[#4A73D1] transition-all duration-200 shadow-sm"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="course-description" className="text-sm font-medium text-gray-600">Description</Label>
+                  <Textarea
+                    id="course-description"
+                    value={courseForm.description}
+                    onChange={(e) => setCourseForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Enter course description..."
+                    rows={6}
+                    className="bg-white border-gray-200 min-h-[150px] rounded-lg focus:border-[#4A73D1] transition-all duration-200 shadow-sm resize-none"
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setShowEditCourseDialog(false)}
+                  disabled={courseLoading}
+                  className="border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-all duration-200"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setShowDeleteCourseDialog(true)}
+                  disabled={courseLoading}
+                  className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition-all duration-200"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Course
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={courseLoading || !courseForm.title.trim()}
+                  className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200 rounded-lg"
+                >
+                  {courseLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Update Course
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Course Confirmation Dialog */}
+        <Dialog open={showDeleteCourseDialog} onOpenChange={setShowDeleteCourseDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center text-red-600">
+                <AlertTriangle className="h-5 w-5 mr-2" />
+                Delete Course
+              </DialogTitle>
+              <DialogDescription className="text-gray-600">
+                This action cannot be undone. This will permanently delete the course and all associated data.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="py-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-800 text-sm font-medium mb-2">
+                  You are about to delete: <span className="font-bold">&#34;{course?.title}&#34;</span>
+                </p>
+                <p className="text-red-700 text-sm">
+                  This will also delete:
+                </p>
+                <ul className="text-red-700 text-sm mt-1 ml-4 list-disc">
+                  <li>All {course?.modules?.length || 0} modules</li>
+                  <li>All {announcements.length} announcements</li>
+                  <li>All student enrollment data</li>
+                  <li>All progress tracking data</li>
+                </ul>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowDeleteCourseDialog(false)}
+                disabled={courseLoading}
+                className="border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-all duration-200"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleDeleteCourse}
+                disabled={courseLoading}
+                className="bg-red-600 text-white hover:bg-red-700 rounded-lg transition-all duration-200"
+              >
+                {courseLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Yes, Delete Course
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   )
