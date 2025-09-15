@@ -140,6 +140,18 @@ export default function LearnMorePage() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
+            <div className="pt-4">
+              <Link href="/contact">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-slate-200 text-[#3B82F6] px-6 py-3 text-base font-medium rounded-md hover:bg-slate-50 transition-all duration-200 hover-shadow w-30% sm:w-auto"
+                    aria-label="Contact Us"
+                  >
+                    Contact Us
+                  </Button>
+                </Link>
+            </div>
           </motion.div>
         </div>
       </section>

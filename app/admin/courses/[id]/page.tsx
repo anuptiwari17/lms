@@ -27,7 +27,8 @@ import {
   Save,
   X,
   AlertTriangle,
-  Menu
+  Menu,
+  MoreVertical
 } from "lucide-react"
 import LoadingSpinner from "@/components/ui/LoadingSpinner"
 import type { Course, Module, ApiResponse, AnnouncementWithAuthor, Announcement } from "@/types/database"
@@ -59,7 +60,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
   const [error, setError] = useState("")
   const [activeTab, setActiveTab] = useState("overview")
   const [courseId, setCourseId] = useState<string>("")
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   // Module form state
   const [showModuleForm, setShowModuleForm] = useState(false)
@@ -410,30 +411,26 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     })
   }
 
-  if (!courseId) {
-    return <LoadingSpinner message="Loading course..." />
-  }
-
-  if (loading) {
+  if (!courseId || loading) {
     return <LoadingSpinner message="Loading course..." />
   }
 
   if (error || !course) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center space-y-6 w-full max-w-md">
-          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto shadow-md">
-            <div className="w-10 h-10 border-4 border-[#DB1B28] rounded-full flex items-center justify-center animate-pulse">
-              <div className="w-4 h-4 bg-[#DB1B28] rounded-full"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center space-y-6 max-w-sm mx-auto">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto shadow-md">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 border-4 border-[#DB1B28] rounded-full flex items-center justify-center animate-pulse">
+              <div className="w-3 h-3 sm:w-4 sm:h-4 bg-[#DB1B28] rounded-full"></div>
             </div>
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Something went wrong</h3>
-            <p className="text-[#DB1B28] mb-6 text-base">{error || 'Course not found'}</p>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Something went wrong</h3>
+            <p className="text-[#DB1B28] mb-6 text-base sm:text-lg">{error || 'Course not found'}</p>
             <Link href="/admin">
-              <Button className="w-full sm:w-auto bg-[#4A73D1] hover:bg-[#3B5BB8] text-white rounded-lg transition-all duration-200 px-4 py-2">
+              <Button className="bg-[#4A73D1] text-white px-6 py-3 rounded-lg hover:bg-[#3B5BB8] hover:scale-105 transition-all duration-200 w-full sm:w-auto">
                 Back to Dashboard
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </Link>
           </div>
@@ -445,38 +442,34 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       {/* Header */}
-      <header className="bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-md sticky top-0 z-50">
-        <div className="mx-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+      <header className="bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
               <Link href="/admin">
                 <Button 
                   variant="ghost" 
-                  className="text-gray-600 hover:text-[#4A73D1] hover:bg-blue-50 rounded-lg transition-all duration-200 px-4 py-2"
+                  size="sm"
+                  className="text-gray-600 hover:text-[#4A73D1] hover:bg-blue-50 transition-all duration-200 rounded-lg p-2"
                 >
-                  <ArrowLeft className="h-5 w-5 mr-2" />
-                  Back
+                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="hidden sm:ml-2 sm:inline">Back</span>
                 </Button>
               </Link>
-              <div className="text-center sm:text-left">
-                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate max-w-[200px] sm:max-w-[400px]">{course.title}</h1>
-                <p className="text-sm text-gray-600">Course Management</p>
+              <div className="h-4 w-px bg-gray-200 hidden sm:block"></div>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-sm sm:text-lg lg:text-xl font-bold text-gray-900 truncate">{course.title}</h1>
+                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Course Management</p>
               </div>
             </div>
-            <div className="sm:hidden">
-              <Button 
-                variant="ghost" 
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-gray-600 hover:text-[#4A73D1] hover:bg-blue-50 rounded-lg transition-all duration-200 px-4 py-2"
-              >
-                <Menu className="h-6 w-6" />
-              </Button>
-            </div>
-            <div className="hidden sm:flex items-center gap-3">
+            
+            {/* Desktop Header Actions */}
+            <div className="hidden md:flex items-center space-x-3">
               <Button 
                 onClick={() => setShowEditCourseDialog(true)}
                 variant="outline" 
-                className="w-full sm:w-auto border-gray-300 text-[#4A73D1] hover:bg-blue-50 hover:text-[#3B5BB8] rounded-lg transition-all duration-200 px-4 py-2"
+                size="sm"
+                className="border-gray-300 text-[#4A73D1] hover:bg-blue-50 hover:text-[#3B5BB8] rounded-lg transition-all duration-200"
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Course
@@ -484,23 +477,38 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
               <Button 
                 onClick={handleDownloadCSV}
                 variant="outline" 
-                className="w-full sm:w-auto border-gray-300 text-[#4A73D1] hover:bg-blue-50 hover:text-[#3B5BB8] rounded-lg transition-all duration-200 px-4 py-2"
+                size="sm"
+                className="border-gray-300 text-[#4A73D1] hover:bg-blue-50 hover:text-[#3B5BB8] rounded-lg transition-all duration-200"
                 disabled={students.length === 0}
               >
                 <Download className="h-4 w-4 mr-2" />
-                Export Analytics
+                Export
+              </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2"
+              >
+                <MoreVertical className="h-5 w-5" />
               </Button>
             </div>
           </div>
-          {isMenuOpen && (
-            <div className="sm:hidden absolute top-16 right-4 w-48 bg-white border border-gray-100 shadow-lg rounded-lg p-4 space-y-2 z-50">
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden mt-4 pt-4 border-t border-gray-100 space-y-3">
               <Button 
                 onClick={() => {
                   setShowEditCourseDialog(true)
-                  setIsMenuOpen(false)
+                  setMobileMenuOpen(false)
                 }}
-                variant="ghost" 
-                className="w-full text-left text-[#4A73D1] hover:bg-blue-50 hover:text-[#3B5BB8] rounded-lg transition-all duration-200 px-4 py-2"
+                variant="outline" 
+                className="w-full border-gray-300 text-[#4A73D1] hover:bg-blue-50 hover:text-[#3B5BB8] rounded-lg transition-all duration-200 justify-start"
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Course
@@ -508,10 +516,10 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
               <Button 
                 onClick={() => {
                   handleDownloadCSV()
-                  setIsMenuOpen(false)
+                  setMobileMenuOpen(false)
                 }}
-                variant="ghost" 
-                className="w-full text-left text-[#4A73D1] hover:bg-blue-50 hover:text-[#3B5BB8] rounded-lg transition-all duration-200 px-4 py-2"
+                variant="outline" 
+                className="w-full border-gray-300 text-[#4A73D1] hover:bg-blue-50 hover:text-[#3B5BB8] rounded-lg transition-all duration-200 justify-start"
                 disabled={students.length === 0}
               >
                 <Download className="h-4 w-4 mr-2" />
@@ -523,115 +531,100 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 w-full max-w-full sm:max-w-7xl">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-[#DB1B28] p-4 rounded-lg mb-6 flex items-center">
-            <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0" />
-            <span className="text-sm">{error}</span>
+          <div className="bg-red-50 border border-red-200 text-red-700 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 flex items-start">
+            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 mr-2 mt-0.5 flex-shrink-0" />
+            <span className="text-sm sm:text-base">{error}</span>
           </div>
         )}
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="pt-18 sm:pt-0">
-  <TabsList className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 p-2">
-    <TabsTrigger
-      value="overview"
-      className="w-full h-12 py-3 px-4 flex items-center justify-start data-[state=active]:bg-[#4A73D1] data-[state=active]:text-white font-medium rounded-lg transition-all duration-200 text-base text-gray-600 hover:bg-blue-50 hover:text-[#4A73D1]"
-    >
-      <BarChart3 className="h-5 w-5 mr-2" />
-      Overview
-    </TabsTrigger>
-    <TabsTrigger
-      value="modules"
-      className="w-full h-12 py-3 px-4 flex items-center justify-start data-[state=active]:bg-[#4A73D1] data-[state=active]:text-white font-medium rounded-lg transition-all duration-200 text-base text-gray-600 hover:bg-blue-50 hover:text-[#4A73D1]"
-    >
-      <BookOpen className="h-5 w-5 mr-2" />
-      Modules ({course.modules?.length || 0})
-    </TabsTrigger>
-    <TabsTrigger
-      value="announcements"
-      className="w-full h-12 py-3 px-4 flex items-center justify-start data-[state=active]:bg-[#4A73D1] data-[state=active]:text-white font-medium rounded-lg transition-all duration-200 text-base text-gray-600 hover:bg-blue-50 hover:text-[#4A73D1]"
-    >
-      <Megaphone className="h-5 w-5 mr-2" />
-      Announcements ({announcements.length})
-    </TabsTrigger>
-    <TabsTrigger
-      value="students"
-      className="w-full h-12 py-3 px-4 flex items-center justify-start data-[state=active]:bg-[#4A73D1] data-[state=active]:text-white font-medium rounded-lg transition-all duration-200 text-base text-gray-600 hover:bg-blue-50 hover:text-[#4A73D1]"
-    >
-      <Users className="h-5 w-5 mr-2" />
-      Students ({students.length})
-    </TabsTrigger>
-  </TabsList>
-
-
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sm:space-y-8">
+          {/* Mobile-First Tab Navigation */}
+          <div className="w-full">
+            <TabsList className="grid w-full grid-cols-4 bg-white border border-gray-100 p-1 rounded-xl shadow-sm h-14 sm:h-16">
+              <TabsTrigger 
+                value="overview" 
+                className="data-[state=active]:bg-[#4A73D1] data-[state=active]:text-white font-medium rounded-lg transition-all duration-200 flex flex-col items-center justify-center p-2 text-xs sm:text-sm"
+                title="Overview"
+              >
+                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mb-1" />
+                <span className="hidden sm:inline">Overview</span>
+                <span className="sm:hidden">Stats</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="modules"
+                className="data-[state=active]:bg-[#4A73D1] data-[state=active]:text-white font-medium rounded-lg transition-all duration-200 flex flex-col items-center justify-center p-2 text-xs sm:text-sm"
+                title={`Modules (${course.modules?.length || 0})`}
+              >
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mb-1" />
+                <span className="hidden sm:inline">Modules</span>
+                <span className="sm:hidden text-xs">({course.modules?.length || 0})</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="announcements"
+                className="data-[state=active]:bg-[#4A73D1] data-[state=active]:text-white font-medium rounded-lg transition-all duration-200 flex flex-col items-center justify-center p-2 text-xs sm:text-sm"
+                title={`Announcements (${announcements.length})`}
+              >
+                <Megaphone className="h-4 w-4 sm:h-5 sm:w-5 mb-1" />
+                <span className="hidden sm:inline">Announcements</span>
+                <span className="sm:hidden text-xs">({announcements.length})</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="students"
+                className="data-[state=active]:bg-[#4A73D1] data-[state=active]:text-white font-medium rounded-lg transition-all duration-200 flex flex-col items-center justify-center p-2 text-xs sm:text-sm"
+                title={`Students (${students.length})`}
+              >
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 mb-1" />
+                <span className="hidden sm:inline">Students</span>
+                <span className="sm:hidden text-xs">({students.length})</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
-              <Card className="bg-white border-gray-100 shadow-md rounded-lg hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Total Modules</p>
-                      <p className="text-xl sm:text-2xl font-bold text-gray-900">{course.modules?.length || 0}</p>
+          <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+              {[
+                { title: "Total Modules", value: course.modules?.length || 0, icon: BookOpen },
+                { title: "Announcements", value: announcements.length, icon: Megaphone },
+                { title: "Enrolled Students", value: students.length, icon: Users },
+                { 
+                  title: "Avg Progress", 
+                  value: `${students.length > 0 ? Math.round(students.reduce((sum, s) => sum + s.progress_percentage, 0) / students.length) : 0}%`, 
+                  icon: BarChart3 
+                }
+              ].map((stat, index) => (
+                <Card key={index} className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
+                  <CardContent className="p-3 sm:p-4 lg:p-6">
+                    <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex-1">
+                        <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1 leading-tight">{stat.title}</p>
+                        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{stat.value}</p>
+                      </div>
+                      <div className="self-end sm:self-auto">
+                        <stat.icon className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-[#4A73D1]" />
+                      </div>
                     </div>
-                    <BookOpen className="h-6 sm:h-8 w-6 sm:w-8 text-[#4A73D1]" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white border-gray-100 shadow-md rounded-lg hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Announcements</p>
-                      <p className="text-xl sm:text-2xl font-bold text-gray-900">{announcements.length}</p>
-                    </div>
-                    <Megaphone className="h-6 sm:h-8 w-6 sm:w-8 text-[#4A73D1]" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white border-gray-100 shadow-md rounded-lg hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Enrolled Students</p>
-                      <p className="text-xl sm:text-2xl font-bold text-gray-900">{students.length}</p>
-                    </div>
-                    <Users className="h-6 sm:h-8 w-6 sm:w-8 text-[#4A73D1]" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white border-gray-100 shadow-md rounded-lg hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Avg Progress</p>
-                      <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                        {students.length > 0 
-                          ? Math.round(students.reduce((sum, s) => sum + s.progress_percentage, 0) / students.length)
-                          : 0
-                        }%
-                      </p>
-                    </div>
-                    <BarChart3 className="h-6 sm:h-8 w-6 sm:w-8 text-[#4A73D1]" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-            <Card className="bg-white border-gray-100 shadow-md rounded-lg hover:shadow-lg transition-all duration-200">
-              <CardHeader className="p-4 sm:p-6">
+
+            <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
+              <CardHeader>
                 <CardTitle className="text-lg sm:text-xl font-bold text-gray-900">Course Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 p-4 sm:p-6">
+              <CardContent className="space-y-4">
                 <div>
                   <Label className="text-sm font-semibold text-gray-600">Description</Label>
-                  <p className="text-gray-600 text-base leading-relaxed mt-1">
+                  <p className="text-gray-600 text-sm sm:text-base leading-relaxed mt-1">
                     {course.description || 'No description provided'}
                   </p>
                 </div>
                 <div>
                   <Label className="text-sm font-semibold text-gray-600">Created</Label>
-                  <p className="text-gray-600 text-base mt-1">
+                  <p className="text-gray-600 text-sm sm:text-base mt-1">
                     {new Date(course.created_at).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',

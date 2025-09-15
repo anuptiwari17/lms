@@ -21,7 +21,8 @@ import {
   ArrowRight,
   Filter,
   Download,
-  Eye
+  Eye,
+  Plus
 } from "lucide-react"
 import type { User, Enrollment } from "@/types/database"
 import LoadingSpinner from "@/components/ui/LoadingSpinner"
@@ -147,10 +148,52 @@ export default function ModernAdminStudentsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      {/* Header */}
+      {/* Mobile-First Header */}
       <header className="bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm sticky top-0 z-10">
-        <div className="mx-auto px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="w-full px-3 py-3 sm:px-4 sm:py-4 lg:px-8">
+          {/* Mobile Layout */}
+          <div className="flex items-center sm:hidden">
+            {/* Left: Back button */}
+            <Link href="/admin">
+              <Button variant="ghost" size="sm" className="p-2 text-gray-600 hover:text-[#4A73D1] hover:bg-blue-50 rounded-lg">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            
+            {/* Center: Logo - with flex-1 to center properly */}
+            <div className="flex-1 flex justify-center px-2">
+              <Link href="/admin">
+                <Image
+                  src="/images/bilvens-logo+name.webp"
+                  alt="Bilvens Logo"
+                  width={100}
+                  height={30}
+                  className="object-contain"
+                />
+              </Link>
+            </div>
+            
+            {/* Right: Actions */}
+            <div className="flex items-center space-x-1">
+              <Button
+                onClick={handleExportCSV}
+                variant="ghost"
+                size="sm"
+                className="p-2 text-gray-600 hover:text-[#4A73D1] hover:bg-blue-50 rounded-lg"
+                disabled={filteredStudents.length === 0}
+              >
+                <Download className="h-5 w-5" />
+              </Button>
+              <Link href="/admin/students/new">
+                <Button size="sm" className="p-2 bg-[#4A73D1] text-white hover:bg-[#3B5BB8] rounded-lg">
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden sm:flex sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <Link href="/admin">
                 <Image
@@ -158,21 +201,21 @@ export default function ModernAdminStudentsPage() {
                   alt="Bilvens Logo"
                   width={120}
                   height={36}
-                  className="object-contain sm:w-[140px] sm:h-[40px]"
+                  className="object-contain lg:w-[140px] lg:h-[40px]"
                 />
               </Link>
-              <div className="h-6 w-px bg-gray-200 hidden sm:block"></div>
-              <div className="text-center sm:text-left">
-                <h1 className="text-lg sm:text-xl font-bold text-gray-900">Student Management</h1>
+              <div className="h-6 w-px bg-gray-200"></div>
+              <div>
+                <h1 className="text-lg lg:text-xl font-bold text-gray-900">Student Management</h1>
                 <p className="text-sm text-gray-600">View and manage all students</p>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="flex items-center gap-3">
               <Link href="/admin">
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="w-full sm:w-auto border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-all duration-200 px-4 py-2"
+                  className="border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-all duration-200"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Dashboard
@@ -182,7 +225,7 @@ export default function ModernAdminStudentsPage() {
                 onClick={handleExportCSV}
                 variant="outline"
                 size="sm"
-                className="w-full sm:w-auto border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-all duration-200 px-4 py-2"
+                className="border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-all duration-200"
                 disabled={filteredStudents.length === 0}
               >
                 <Download className="h-4 w-4 mr-2" />
@@ -190,7 +233,8 @@ export default function ModernAdminStudentsPage() {
               </Button>
               <Link href="/admin/students/new">
                 <Button 
-                  className="w-full sm:w-auto bg-[#4A73D1] text-white hover:bg-[#3B5BB8] rounded-lg transition-all duration-200 px-4 py-2"
+                  size="sm"
+                  className="bg-[#4A73D1] text-white hover:bg-[#3B5BB8] rounded-lg transition-all duration-200"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
                   Add Student
@@ -198,114 +242,115 @@ export default function ModernAdminStudentsPage() {
               </Link>
             </div>
           </div>
+
+          {/* Mobile Title */}
+          <div className="mt-3 text-center sm:hidden">
+            <h1 className="text-lg font-bold text-gray-900">Student Management</h1>
+            <p className="text-sm text-gray-600">View and manage all students</p>
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 w-full max-w-7xl">
-        {/* Back Link (Hidden on Desktop) */}
-        <Link
-          href="/admin"
-          className="inline-flex items-center text-gray-600 mb-4 text-sm font-medium hover:text-[#4A73D1] transition-colors sm:hidden"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Link>
-
+      <main className="w-full px-3 py-4 sm:px-4 sm:py-6 lg:px-8 lg:py-10 max-w-7xl mx-auto">
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-[#DB1B28] p-4 rounded-lg mb-4 flex items-center">
-            <div className="w-4 h-4 border-2 border-[#DB1B28] rounded-full flex items-center justify-center flex-shrink-0">
+          <div className="bg-red-50 border border-red-200 text-[#DB1B28] p-3 rounded-lg mb-4 flex items-start">
+            <div className="w-4 h-4 border-2 border-[#DB1B28] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
               <div className="w-1.5 h-1.5 bg-[#DB1B28] rounded-full"></div>
             </div>
             <span className="ml-2 text-sm">{error}</span>
           </div>
         )}
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between">
+        {/* Stats Cards - Mobile Optimized */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
+          <Card className="bg-white border-gray-100 shadow-md rounded-lg sm:rounded-xl hover:shadow-lg transition-all duration-200">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="flex flex-col items-center text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Total Students</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{students.length}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Total</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{students.length}</p>
                 </div>
-                <div className="p-2 sm:p-3 bg-blue-50 rounded-xl">
-                  <Users className="h-5 w-5 sm:h-6 sm:w-6 text-[#4A73D1]" />
+                <div className="p-2 bg-blue-50 rounded-lg sm:rounded-xl mt-2 sm:mt-0">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-[#4A73D1]" />
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between">
+
+          <Card className="bg-white border-gray-100 shadow-md rounded-lg sm:rounded-xl hover:shadow-lg transition-all duration-200">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="flex flex-col items-center text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Enrolled</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Enrolled</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
                     {students.filter(s => s.enrolled_courses > 0).length}
                   </p>
                 </div>
-                <div className="p-2 sm:p-3 bg-blue-50 rounded-xl">
-                  <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-[#4A73D1]" />
+                <div className="p-2 bg-blue-50 rounded-lg sm:rounded-xl mt-2 sm:mt-0">
+                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-[#4A73D1]" />
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between">
+
+          <Card className="bg-white border-gray-100 shadow-md rounded-lg sm:rounded-xl hover:shadow-lg transition-all duration-200">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="flex flex-col items-center text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Not Enrolled</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Not Enrolled</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
                     {students.filter(s => s.enrolled_courses === 0).length}
                   </p>
                 </div>
-                <div className="p-2 sm:p-3 bg-red-50 rounded-xl">
-                  <UserPlus className="h-5 w-5 sm:h-6 sm:w-6 text-[#DB1B28]" />
+                <div className="p-2 bg-red-50 rounded-lg sm:rounded-xl mt-2 sm:mt-0">
+                  <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-[#DB1B28]" />
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between">
+
+          <Card className="bg-white border-gray-100 shadow-md rounded-lg sm:rounded-xl hover:shadow-lg transition-all duration-200">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="flex flex-col items-center text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Avg Progress</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Avg Progress</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
                     {students.length > 0 
                       ? Math.round(students.reduce((sum, s) => sum + s.avg_progress, 0) / students.length)
                       : 0
                     }%
                   </p>
                 </div>
-                <div className="p-2 sm:p-3 bg-green-50 rounded-xl">
-                  <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+                <div className="p-2 bg-green-50 rounded-lg sm:rounded-xl mt-2 sm:mt-0">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-green-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Search and Filter */}
-        <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:gap-6">
+        {/* Search and Filter - Mobile Optimized */}
+        <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4 mb-4 sm:mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input
-              placeholder="Search students by name, email, or phone..."
+              placeholder="Search students..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 bg-white border-gray-200 h-12 rounded-lg focus:border-[#4A73D1] transition-all duration-200 shadow-sm"
+              className="w-full pl-10 pr-4 bg-white border-gray-200 h-10 sm:h-12 rounded-lg focus:border-[#4A73D1] transition-all duration-200 shadow-sm text-sm sm:text-base"
             />
           </div>
-          <div className="flex items-center gap-3">
+          
+          <div className="flex items-center gap-2 sm:gap-3">
             <Filter className="h-4 w-4 text-gray-500 flex-shrink-0" />
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-1 sm:gap-2 flex-1">
               <Button
                 variant={filterType === 'all' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setFilterType('all')}
-                className={`w-full sm:w-auto px-3 py-2 ${filterType === 'all' ? 'bg-[#4A73D1] text-white hover:bg-[#3B5BB8]' : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900'} rounded-lg transition-all duration-200`}
+                className={`flex-1 sm:flex-none px-2 sm:px-3 py-2 text-xs sm:text-sm ${filterType === 'all' ? 'bg-[#4A73D1] text-white hover:bg-[#3B5BB8]' : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900'} rounded-lg transition-all duration-200`}
               >
                 All ({students.length})
               </Button>
@@ -313,17 +358,17 @@ export default function ModernAdminStudentsPage() {
                 variant={filterType === 'enrolled' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setFilterType('enrolled')}
-                className={`w-full sm:w-auto px-3 py-2 ${filterType === 'enrolled' ? 'bg-[#4A73D1] text-white hover:bg-[#3B5BB8]' : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900'} rounded-lg transition-all duration-200`}
+                className={`flex-1 sm:flex-none px-2 sm:px-3 py-2 text-xs sm:text-sm ${filterType === 'enrolled' ? 'bg-[#4A73D1] text-white hover:bg-[#3B5BB8]' : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900'} rounded-lg transition-all duration-200`}
               >
-                Enrolled ({students.filter(s => s.enrolled_courses > 0).length})
+                <span className="hidden sm:inline">Enrolled </span>({students.filter(s => s.enrolled_courses > 0).length})
               </Button>
               <Button
                 variant={filterType === 'not_enrolled' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setFilterType('not_enrolled')}
-                className={`w-full sm:w-auto px-3 py-2 ${filterType === 'not_enrolled' ? 'bg-[#4A73D1] text-white hover:bg-[#3B5BB8]' : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900'} rounded-lg transition-all duration-200`}
+                className={`flex-1 sm:flex-none px-2 sm:px-3 py-2 text-xs sm:text-sm ${filterType === 'not_enrolled' ? 'bg-[#4A73D1] text-white hover:bg-[#3B5BB8]' : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900'} rounded-lg transition-all duration-200`}
               >
-                Not Enrolled ({students.filter(s => s.enrolled_courses === 0).length})
+                <span className="hidden sm:inline">Not </span>({students.filter(s => s.enrolled_courses === 0).length})
               </Button>
             </div>
           </div>
@@ -337,7 +382,7 @@ export default function ModernAdminStudentsPage() {
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
                 {searchTerm ? 'No students found' : 'No students yet'}
               </h3>
-              <p className="text-gray-600 mb-6 text-sm sm:text-base leading-relaxed">
+              <p className="text-gray-600 mb-6 text-sm sm:text-base leading-relaxed max-w-md mx-auto">
                 {searchTerm 
                   ? 'Try adjusting your search terms or filter options.'
                   : 'Add your first student to get started with the platform.'
@@ -345,7 +390,7 @@ export default function ModernAdminStudentsPage() {
               </p>
               {!searchTerm && (
                 <Link href="/admin/students/new">
-                  <Button className="w-full sm:w-auto bg-[#4A73D1] text-white hover:bg-[#3B5BB8] rounded-lg transition-all duration-200 px-4 py-2">
+                  <Button className="w-full sm:w-auto bg-[#4A73D1] text-white hover:bg-[#3B5BB8] rounded-lg transition-all duration-200">
                     <UserPlus className="h-4 w-4 mr-2" />
                     Add First Student
                   </Button>
@@ -354,29 +399,31 @@ export default function ModernAdminStudentsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {filteredStudents.map((student) => (
               <Card key={student.id} className="bg-white border-gray-100 shadow-md rounded-xl hover:shadow-lg transition-all duration-200">
                 <CardContent className="p-4 sm:p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="space-y-4 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
+                    <div className="flex items-start sm:items-center gap-3">
                       {/* Avatar */}
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#4A73D1] text-white rounded-full flex items-center justify-center font-semibold text-base sm:text-lg">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#4A73D1] text-white rounded-full flex items-center justify-center font-semibold text-sm sm:text-lg flex-shrink-0">
                         {student.name.charAt(0).toUpperCase()}
                       </div>
+                      
                       {/* Student Info */}
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2">
                           <h3 className="font-semibold text-base sm:text-lg text-gray-900 truncate">
                             {student.name}
                           </h3>
                           {student.enrolled_courses === 0 && (
-                            <Badge variant="outline" className="border-orange-200 text-orange-700 bg-orange-50 text-xs">
+                            <Badge variant="outline" className="border-orange-200 text-orange-700 bg-orange-50 text-xs w-fit">
                               Not Enrolled
                             </Badge>
                           )}
                         </div>
-                        <div className="space-y-1 text-sm text-gray-600">
+                        
+                        <div className="space-y-1 text-xs sm:text-sm text-gray-600">
                           <div className="flex items-center">
                             <Mail className="h-3 w-3 mr-2 flex-shrink-0" />
                             <span className="truncate">{student.email}</span>
@@ -394,39 +441,46 @@ export default function ModernAdminStudentsPage() {
                         </div>
                       </div>
                     </div>
-                    {/* Stats and Actions */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                      <div className="text-center sm:text-right space-y-2">
-                        <div className="flex items-center justify-center sm:justify-end gap-3 sm:gap-4">
-                          <div className="text-center">
+                    
+                    {/* Stats and Actions - Mobile Optimized */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                      {/* Stats */}
+                      <div className="flex justify-between sm:justify-end items-center gap-4 sm:gap-6">
+                        <div className="flex items-center gap-4 text-center">
+                          <div>
                             <p className="text-xs text-gray-600">Courses</p>
-                            <p className="font-bold text-gray-900 text-sm sm:text-base">{student.enrolled_courses}</p>
+                            <p className="font-bold text-gray-900 text-sm">{student.enrolled_courses}</p>
                           </div>
-                          <div className="text-center">
-                            <p className="text-xs text-gray-600">Completed</p>
-                            <p className="font-bold text-gray-900 text-sm sm:text-base">{student.completed_courses}</p>
+                          <div>
+                            <p className="text-xs text-gray-600">Done</p>
+                            <p className="font-bold text-gray-900 text-sm">{student.completed_courses}</p>
                           </div>
-                          <div className="text-center">
+                          <div>
                             <p className="text-xs text-gray-600">Modules</p>
-                            <p className="font-bold text-gray-900 text-sm sm:text-base">{student.completed_modules}/{student.total_modules}</p>
+                            <p className="font-bold text-gray-900 text-sm">{student.completed_modules}/{student.total_modules}</p>
                           </div>
                         </div>
+                        
+                        {/* Progress Badge */}
                         {student.enrolled_courses > 0 && (
-                          <div className={`px-2 sm:px-3 py-1 rounded-full border ${getProgressBgColor(student.avg_progress)}`}>
+                          <div className={`px-2 py-1 rounded-full border ${getProgressBgColor(student.avg_progress)} flex-shrink-0`}>
                             <p className={`text-xs font-medium ${getProgressColor(student.avg_progress)}`}>
-                              {student.avg_progress}% Progress
+                              {student.avg_progress}%
                             </p>
                           </div>
                         )}
                       </div>
+                      
+                      {/* Action Button */}
                       <Link href={`/admin/students/${student.id}`}>
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="w-full sm:w-auto border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-all duration-200 px-4 py-2"
+                          className="w-full sm:w-auto border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-all duration-200"
                         >
                           <Eye className="h-4 w-4 mr-2" />
-                          View Details
+                          <span className="sm:hidden">View</span>
+                          <span className="hidden sm:inline">View Details</span>
                           <ArrowRight className="h-4 w-4 ml-2" />
                         </Button>
                       </Link>
